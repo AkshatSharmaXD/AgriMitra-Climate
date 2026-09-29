@@ -21,8 +21,8 @@ def test_health_endpoint():
     assert "status" in response.json()
 
 def test_predict_oversized_upload():
-    # 11MB file to trigger the limit
-    large_content = b"0" * (11 * 1024 * 1024)
+    # 25MB file to trigger the limit (PRD D4)
+    large_content = b"0" * (25 * 1024 * 1024)
     response = client.post(
         "/v1/predict",
         files={"file": ("large_image.jpg", large_content, "image/jpeg")}

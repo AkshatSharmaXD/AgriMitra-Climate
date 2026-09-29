@@ -9,6 +9,7 @@ from __future__ import annotations
 import logging
 from contextlib import asynccontextmanager
 
+import structlog
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -20,8 +21,22 @@ from app.api.v1.router import api_router
 from app.core.config import get_settings
 
 settings = get_settings()
-logging.basicConfig(level=settings.log_level)
-logger = logging.getLogger(__name__)
+
+structlog.configure(
+    processors=[
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.add_logger_name,
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.JSONRenderer()
+    ],
+    logger_factory=structlog.stdlib.LoggerFactory(),
+)
+
+logging.basicConfig(
+    format="%(message)s",
+    level=settings.log_level,
+)
+logger = structlog.get_logger(__name__)
 
 limiter = Limiter(key_func=get_remote_address, default_limits=[settings.rate_limit])
 

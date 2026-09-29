@@ -11,3 +11,4 @@ pydantic-settings
 pytest
 httpx
 ruff
+structlog

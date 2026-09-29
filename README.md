@@ -7,8 +7,8 @@ Weather, satellite vegetation, soil, crop data and leaf images are fused into on
 weekly decision for one specific field.
 
 > **Hackathon status.** This is a substantial extension of the original AgriMitra
-> project, built for *Build with AI: Code for Communities*. The baseline is preserved
-> under `legacy/`. See `docs/AUDIT.md` for what changed and why.
+> project, built for *Build with AI: Code for Communities*. 
+> See `docs/AUDIT.md` for what changed and why.
 
 ## Layout
 
@@ -63,5 +63,8 @@ substituting a value.
 
 ## Technology
 
-See `docs/prompts/GEMINI_BUILD_PROMPT.md` §7.8 — the implemented / integrated /
-future-ready breakdown is maintained there until the build is complete.
+- **Database:** MongoDB Atlas (replaced legacy PostgreSQL)
+- **Front end:** React and Next.js (replaced legacy SvelteKit)
+- **Back end:** Python and FastAPI (replaced legacy Node.js/Express)
+- **Vision Inference:** PyTorch and Transformers
+- **Integrations:** Gemini API, Google Earth Engine, OpenWeatherMap, data.gov.in

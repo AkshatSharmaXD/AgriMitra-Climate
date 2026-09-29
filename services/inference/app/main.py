@@ -4,6 +4,7 @@ from io import BytesIO
 
 import cv2
 import numpy as np
+import structlog
 import uvicorn
 from fastapi import FastAPI, File, HTTPException, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,21 +16,21 @@ from transformers import pipeline
 from .core.config import settings
 
 # Configure Logging
+structlog.configure(
+    processors=[
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.add_logger_name,
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.JSONRenderer()
+    ],
+    logger_factory=structlog.stdlib.LoggerFactory(),
+)
+
 logging.basicConfig(
+    format="%(message)s",
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
 )
-
-app = FastAPI()
-
-# Enable CORS with restricted origins
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.allowed_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+logger = structlog.get_logger(__name__)
 
 CLASSIFIER = None
 MODEL_ID = "linkanjarad/mobilenet_v2_1.0_224-plant-disease-identification"
@@ -55,7 +56,7 @@ def auto_crop_image(pil_img: Image.Image) -> tuple[Image.Image, bool]:
         plant_ratio = plant_pixels / total_pixels
         
         if plant_ratio < 0.02:
-            logging.warning(f"Rejection: Low plant pixel ratio detected ({plant_ratio:.2%})")
+            logger.warning(f"Rejection: Low plant pixel ratio detected ({plant_ratio:.2%})")
             return (pil_img, False)
 
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -76,19 +77,34 @@ def auto_crop_image(pil_img: Image.Image) -> tuple[Image.Image, bool]:
         return (Image.fromarray(cropped_rgb), True)
         
     except Exception as e:
-        logging.warning(f"Auto-crop failed, falling back to original image: {e}")
+        logger.warning(f"Auto-crop failed, falling back to original image: {e}")
         return (pil_img, True)
 
-@app.on_event("startup")
-async def startup_event():
+from contextlib import asynccontextmanager
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     global CLASSIFIER
     try:
-        logging.info(f"Loading Hugging Face model: {MODEL_ID}")
+        logger.info(f"Loading Hugging Face model: {MODEL_ID}")
         CLASSIFIER = pipeline("image-classification", model=MODEL_ID)
-        logging.info("✅ Model loaded successfully!")
+        logger.info("✅ Model loaded successfully!")
     except Exception as e:
-        logging.error(f"Failed to load model: {e}")
+        logger.error(f"Failed to load model: {e}")
         CLASSIFIER = None
+    yield
+
+app = FastAPI(lifespan=lifespan)
+
+# Enable CORS with restricted origins
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/health")
 async def health():
@@ -124,7 +140,7 @@ async def analyze_with_gemini(pil_img: Image.Image) -> dict:
             "source": "gemini-vision"
         }
     except Exception as e:
-        logging.error(f"Gemini fallback failed: {e}")
+        logger.error(f"Gemini fallback failed: {e}")
         return {
             "label": "Error",
             "confidence": 0.0,
@@ -193,7 +209,7 @@ async def predict(file: UploadFile = File(...)):
         return gemini_result
         
     except Exception as e:
-        logging.error(f"Prediction error: {e}")
+        logger.error(f"Prediction error: {e}")
         return {
             "label": "Error",
             "confidence": 0.0,

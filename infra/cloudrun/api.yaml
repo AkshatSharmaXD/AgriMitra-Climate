@@ -1,0 +1,47 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: agrimitra-api
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: '20'
+        run.googleapis.com/vpc-access-connector: 'projects/PROJECT_ID/locations/REGION/connectors/CONNECTOR_NAME'
+        run.googleapis.com/vpc-access-egress: 'all-traffic'
+    spec:
+      containers:
+      - image: gcr.io/PROJECT_ID/agrimitra-api:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: MONGODB_URI
+          valueFrom:
+            secretKeyRef:
+              name: MONGODB_URI
+              key: 'latest'
+        - name: GEMINI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: GEMINI_API_KEY
+              key: 'latest'
+        - name: EE_SERVICE_ACCOUNT
+          valueFrom:
+            secretKeyRef:
+              name: EE_SERVICE_ACCOUNT
+              key: 'latest'
+        - name: EE_PRIVATE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: EE_PRIVATE_KEY
+              key: 'latest'
+        - name: OPENWEATHER_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: OPENWEATHER_API_KEY
+              key: 'latest'
+        - name: DATA_GOV_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: DATA_GOV_API_KEY
+              key: 'latest'
