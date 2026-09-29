@@ -6,11 +6,11 @@ the inference service. The result is persisted against the farm so the risk engi
 sees a real observation instead of its neutral baseline.
 """
 
+import httpx
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
-import httpx
-
 from app.core.config import get_settings
+from app.core.database import is_connected
 from app.models.documents import DiseaseAnalysis
 
 router = APIRouter()
@@ -54,7 +54,11 @@ async def analyze_leaf(
     except httpx.HTTPError as exc:
         raise HTTPException(503, "Diagnosis service is unavailable right now.") from exc
 
-    if farm_id and result.get("label"):
+    # The prediction itself needs no database. Persisting it against a farm does,
+    # so a database outage costs the farmer the record, not the diagnosis.
+    stored = False
+    if farm_id and result.get("label") and is_connected():
+        stored = True
         await DiseaseAnalysis(
             farm_id=farm_id,
             crop=crop,
@@ -64,4 +68,4 @@ async def analyze_leaf(
             source=result.get("source", "inference"),
         ).insert()
 
-    return {**result, "disclaimer": HEDGE}
+    return {**result, "stored": stored, "disclaimer": HEDGE}

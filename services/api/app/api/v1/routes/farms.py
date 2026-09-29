@@ -3,15 +3,16 @@
 from dataclasses import asdict
 
 from beanie import PydanticObjectId
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
+from app.api.deps import require_database
 from app.domain.risk import RiskInputs, compute_risk
 from app.integrations.satellite import get_satellite_data
 from app.integrations.weather import get_weather
 from app.models.documents import DiseaseAnalysis, Farm, FarmRisk, SatelliteSnapshot
 from app.schemas.farms import FarmCreate, FarmUpdate
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_database)])
 
 
 async def _get_farm_or_404(farm_id: PydanticObjectId) -> Farm:

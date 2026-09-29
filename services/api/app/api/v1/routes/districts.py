@@ -1,12 +1,13 @@
 """District intelligence endpoints (PRD F12, F14)."""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
+from app.api.deps import require_database
 from app.domain.districts import get_district_summaries, get_state_overview
 from app.integrations.gemini import GeminiUnavailable, generate_json
 from app.schemas.districts import InterventionRequest
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_database)])
 
 DISCLAIMER = (
     "AI output is decision support for officials. It is not an automatic "

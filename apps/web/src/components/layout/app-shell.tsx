@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Compass, Leaf, Map, ScanLine, Sun } from "lucide-react";
+import { Compass, Leaf, MessagesSquare, ScanLine, Sun } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -22,8 +22,8 @@ const TABS = [
   { href: "/", label: "My Farm", Icon: Leaf },
   { href: "/weather", label: "Weather", Icon: Sun },
   { href: "/scan", label: "Scan", Icon: ScanLine },
-  { href: "/crops", label: "Crops", Icon: Compass },
-  { href: "/districts", label: "Districts", Icon: Map },
+  { href: "/districts", label: "Districts", Icon: Compass },
+  { href: "/assistant", label: "Ask", Icon: MessagesSquare },
 ] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {

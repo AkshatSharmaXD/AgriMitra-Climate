@@ -151,7 +151,8 @@ def compute_risk(inputs: RiskInputs) -> RiskResult:
             "Live weather was unavailable, so heat stress and rainfall risk are "
             "excluded from this score rather than assumed."
         )
-        active_weights = {k: v for k, v in WEIGHTS.items() if k not in ("heat_stress", "rainfall_risk")}
+        dropped = ("heat_stress", "rainfall_risk")
+        active_weights = {k: v for k, v in WEIGHTS.items() if k not in dropped}
     else:
         heat = heat_stress(inputs.temperature_c)
         rain = rainfall_risk(inputs.rainfall_mm_7d or 0.0)

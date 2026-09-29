@@ -19,10 +19,9 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from functools import lru_cache
-
-from app.core.paths import DATA_DIR
 from typing import Any
 
+from app.core.paths import DATA_DIR
 
 # One point per criterion. Rainfall is dropped from the denominator when no
 # comparable seasonal figure is available, so an unknown never reads as a failure.

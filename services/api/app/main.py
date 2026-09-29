@@ -28,7 +28,7 @@ limiter = Limiter(key_func=get_remote_address, default_limits=[settings.rate_lim
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    from app.core.database import connect_to_mongo, close_mongo_connection
+    from app.core.database import close_mongo_connection, connect_to_mongo
 
     await connect_to_mongo()
     logger.info(
@@ -88,10 +88,13 @@ app.include_router(api_router, prefix="/api/v1")
 @app.get("/health", tags=["system"])
 async def health() -> dict[str, object]:
     """Liveness plus a truthful capability report, so the UI can label its data."""
+    from app.core.database import is_connected
+
     return {
         "status": "ok",
         "version": app.version,
         "capabilities": {
+            "database": is_connected(),
             "gemini": settings.gemini_enabled,
             "earth_engine": settings.earth_engine_enabled,
             "market_data": settings.market_data_enabled,

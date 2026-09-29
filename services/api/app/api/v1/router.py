@@ -4,11 +4,15 @@ from fastapi import APIRouter
 
 from app.api.v1.routes import (
     advisory,
+    chat,
     diagnosis,
     districts,
+    farmers,
     farms,
+    market,
     recommendations,
     satellite,
+    schemes,
     weather,
 )
 
@@ -22,3 +26,7 @@ api_router.include_router(
 api_router.include_router(advisory.router, prefix="/advisory", tags=["advisory"])
 api_router.include_router(diagnosis.router, prefix="/diagnosis", tags=["diagnosis"])
 api_router.include_router(districts.router, prefix="/districts", tags=["districts"])
+api_router.include_router(farmers.router, prefix="/farmers", tags=["farmers"])
+api_router.include_router(chat.router, prefix="/chat", tags=["chat"])
+api_router.include_router(schemes.router, prefix="/schemes", tags=["schemes"])
+api_router.include_router(market.router, prefix="/market", tags=["market"])

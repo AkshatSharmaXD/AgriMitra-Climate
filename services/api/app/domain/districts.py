@@ -79,7 +79,9 @@ async def get_district_summaries() -> list[dict[str, Any]]:
                 "top_crops": [crop for crop, _ in crops.most_common(3)],
                 "dominant_crop": crops.most_common(1)[0][0] if crops else None,
                 "water_stress_level": _band(average_water) if average_water is not None else None,
-                "water_stress_score": round(average_water, 1) if average_water is not None else None,
+                "water_stress_score": (
+                    round(average_water, 1) if average_water is not None else None
+                ),
                 "disease_occurrences": dict(disease_counts.most_common(5)),
                 "is_demo": all(farm.is_demo for farm in district_farms),
             }

@@ -88,10 +88,8 @@
   --ease-in-quint:  cubic-bezier(0.64, 0, 0.78, 0); /* mirror of the above */
 }
 
-:root[data-theme="dark"],
-:root:not([data-theme="light"]) {
-  /* Dark is applied by the `dark` class from next-themes; see tailwind.config. */
-}
+/* `next-themes` resolves the system preference to a `dark` class on <html>, so the
+   dark token set is written once here and also drives an explicit user toggle. */
 
 .dark {
   color-scheme: dark;

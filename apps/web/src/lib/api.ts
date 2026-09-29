@@ -195,6 +195,15 @@ export const api = {
       `/weather/seasonal-rainfall?lat=${lat}&lng=${lng}&season=${season}`,
     ),
 
+  geocode: (q: string) =>
+    request<{
+      name: string;
+      admin1: string | null;
+      country: string | null;
+      lat: number;
+      lng: number;
+    }>(`/weather/geocode?q=${encodeURIComponent(q)}`),
+
   getSatellite: (lat: number, lng: number, district?: string) =>
     request<Satellite>(
       `/satellite?lat=${lat}&lng=${lng}${district ? `&district=${encodeURIComponent(district)}` : ""}`,
@@ -219,6 +228,30 @@ export const api = {
       { method: "POST", body: JSON.stringify(body) },
     ),
 
+  explainCrops: (body: {
+    season: Season;
+    soil_type: string;
+    irrigation: string;
+    temperature_c?: number | null;
+    seasonal_rainfall_mm?: number | null;
+    location: string;
+    language?: Language;
+    limit?: number;
+  }) =>
+    request<{
+      explanations: Array<{
+        crop: string;
+        verdict: string;
+        why: string;
+        watch_out_for: string;
+      }>;
+      ranking_source: string;
+      explanation_source: string;
+    }>("/recommendations/crops/explain", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
   getAdvisory: (body: Record<string, unknown>) =>
     request<Advisory>("/advisory", { method: "POST", body: JSON.stringify(body) }),
 
@@ -230,6 +263,20 @@ export const api = {
       source: string;
       disclaimer: string;
     }>("/diagnosis", { method: "POST", body: form }),
+
+  chat: (body: {
+    farm_id: string;
+    message: string;
+    language?: Language;
+    history?: Array<{ role: "user" | "assistant"; content: string }>;
+  }) =>
+    request<{
+      answer: string;
+      grounded_in: string[];
+      /** False when the farm record does not contain the answer. */
+      answerable: boolean;
+      disclaimer: string;
+    }>("/chat", { method: "POST", body: JSON.stringify(body) }),
 
   getDistrictOverview: () => request<StateOverview>("/districts/overview"),
 
