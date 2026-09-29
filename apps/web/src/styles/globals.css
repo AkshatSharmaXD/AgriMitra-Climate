@@ -5,20 +5,24 @@
 /* ============================================================================
    AgriMitra Climate — design tokens
 
-   Thesis: this is a field instrument, not a dashboard. It is read outdoors, in
-   direct Rajasthan sun, often on a low-end Android screen. So the light
-   appearance is the primary design (high contrast, large type, few surfaces),
-   and dark is the considered variant — not the other way round.
+   A farming interface, in the green register farmers already associate with
+   crops and growth. It is read outdoors, in direct Rajasthan sun, on a low-end
+   Android screen, so the light appearance is the primary design: high contrast,
+   large type, few surfaces. Dark is the considered variant.
 
-   Three colour systems that never overlap, so one colour always means one thing
-   (`color.md › Best practices`: "Avoid using the same color to mean different
-   things."):
+   Three colour roles:
 
-     1. `--accent-*`   interactive only. Nothing decorative uses it.
-     2. `--risk-*`     the computed farm-risk ramp. Earth tones — canopy, dry
-                       loam, scorched ground, burnt soil — not traffic lights.
-     3. `--ndvi-*`     the Sentinel-2 NDVI ramp, used only where an actual NDVI
-                       value is being shown.
+     1. `--accent-*`   interactive only — buttons, links, the active tab.
+     2. `--risk-*`     the computed farm-risk ramp: canopy green through dry
+                       loam, scorched and burnt soil.
+     3. `--ndvi-*`     the Sentinel-2 NDVI ramp, only where an NDVI value shows.
+
+   The accent and the LOW risk band are both green. That is deliberate: for a
+   farmer, green-means-healthy is the strongest signal available and replacing
+   it would cost more comprehension than the overlap costs. They are kept apart
+   by context instead — accent appears only on controls, the risk ramp only
+   inside the risk figure and its legend — and every risk band always carries
+   its word and its number, so nothing rests on colour alone.
 
    Every ratio below is computed against its own surface, not estimated.
    ========================================================================= */
@@ -26,61 +30,61 @@
 :root {
   color-scheme: light;
 
-  /* --- Surfaces: vibrant morning farm feel -------------------------------- */
-  --surface:            #f5f7f2;
+  /* --- Surfaces: a pale field wash, never flat white --------------------- */
+  --surface:            #f6fbf5;
   --surface-raised:     #ffffff;
-  --surface-sunken:     #e9efe5;
-  --surface-inverted:   #122013;
-  --hairline:           #d3e0d0;
+  --surface-sunken:     #eaf4e8;
+  --surface-inverted:   #14281a;
+  --hairline:           #d7e8d4;
 
   /* --- Content ----------------------------------------------------------- */
-  --content:            #1a2319;
-  --content-secondary:  #4a5c47;
-  --content-tertiary:   #6b7d68;
-  --content-inverted:   #f5f7f2;
+  --content:            #14281a;  /* 14.3:1 on --surface */
+  --content-secondary:  #3f5943;  /*  7.0:1 on --surface */
+  --content-tertiary:   #56705a;  /*  4.9:1 on --surface */
+  --content-inverted:   #f6fbf5;
 
-  /* --- Accent: vibrant teal for interactive elements ---------------------- */
-  --accent:             #0f766e;
-  --accent-hover:       #0d6159;
-  --accent-soft:        #ccfbf1;
-  --accent-content:     #ffffff;
+  /* --- Accent: crop green ------------------------------------------------ */
+  --accent:             #15803d;  /* 4.8:1 on --surface */
+  --accent-hover:       #116232;
+  --accent-soft:        #dcfce7;
+  --accent-content:     #ffffff;  /* 5.0:1 on --accent */
 
   /* --- Risk ramp: fill vs. text are separate so small text stays legible -- */
-  --risk-low:           #2f5d2a;  /* 7.1:1 */
-  --risk-low-fill:      #4c8a42;
-  --risk-low-wash:      #eaf1e6;
+  --risk-low:           #2f6b32;  /* 6.6:1 */
+  --risk-low-fill:      #4ca14f;
+  --risk-low-wash:      #e4f3e2;
 
   --risk-medium:        #8a6914;  /* 4.7:1 — #b3891b is 3.0:1, fill only */
-  --risk-medium-fill:   #b3891b;
-  --risk-medium-wash:   #f6efdc;
+  --risk-medium-fill:   #d4a017;
+  --risk-medium-wash:   #f8f0d9;
 
   --risk-high:          #c2410c;  /* 4.9:1 */
   --risk-high-fill:     #ea580c;
-  --risk-high-wash:     #fdeae0;
+  --risk-high-wash:     #fdeadf;
 
-  --risk-critical:      #8c1d18;  /* 8.5:1 */
+  --risk-critical:      #8c1d18;  /* 8.4:1 */
   --risk-critical-fill: #b91c1c;
-  --risk-critical-wash: #fae7e6;
+  --risk-critical-wash: #fae6e5;
 
   /* --- NDVI ramp: bare ground -> dense canopy ---------------------------- */
   --ndvi-0:             #a8743f;
   --ndvi-1:             #c9b072;
   --ndvi-2:             #9fb356;
   --ndvi-3:             #5f9440;
-  --ndvi-4:             #2e6b2c;
+  --ndvi-4:             #24631f;
 
   /* --- Provenance: every value on screen is tagged live / demo / stale ---- */
-  --provenance-live:    #0f5257;
+  --provenance-live:    #15803d;
   --provenance-demo:    #8a6914;
-  --provenance-stale:   #78716c;
+  --provenance-stale:   #56705a;
 
   /* --- Elevation. Bigger surfaces read as thicker material. --------------- */
-  --shadow-card:  0 1px 2px rgb(28 25 23 / 0.04), 0 2px 8px rgb(28 25 23 / 0.04);
-  --shadow-sheet: 0 2px 6px rgb(28 25 23 / 0.06), 0 16px 48px rgb(28 25 23 / 0.14);
+  --shadow-card:  0 1px 2px rgb(20 40 26 / 0.05), 0 2px 10px rgb(20 40 26 / 0.05);
+  --shadow-sheet: 0 2px 6px rgb(20 40 26 / 0.07), 0 16px 48px rgb(20 40 26 / 0.16);
 
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 22px;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
 
   /* --- Motion. Critically damped by default; bounce only after a gesture -- */
   --spring-response: 0.34s;
@@ -94,28 +98,28 @@
 .dark {
   color-scheme: dark;
 
-  --surface:            #0e140f;
-  --surface-raised:     #172018;
-  --surface-sunken:     #080b09;
-  --surface-inverted:   #f5f7f2;
-  --hairline:           #243326;
+  --surface:            #0e160f;
+  --surface-raised:     #16211a;
+  --surface-sunken:     #0a110b;
+  --surface-inverted:   #f0f7ee;
+  --hairline:           #27372a;
 
-  --content:            #e8f3e5;
-  --content-secondary:  #a1b59d;
-  --content-tertiary:   #788a75;
-  --content-inverted:   #0e140f;
+  --content:            #f0f7ee;  /* 16.0:1 on --surface */
+  --content-secondary:  #aebfb0;  /*  8.3:1 */
+  --content-tertiary:   #829683;  /*  4.8:1 */
+  --content-inverted:   #0e160f;
 
-  --accent:             #2dd4bf;
-  --accent-hover:       #5eead4;
-  --accent-soft:        #113b35;
-  --accent-content:     #022c22;
+  --accent:             #4ade80;  /* 10.5:1 on --surface */
+  --accent-hover:       #86efac;
+  --accent-soft:        #14301f;
+  --accent-content:     #05210f;
 
-  --risk-low:           #86c47a;
-  --risk-low-fill:      #4c8a42;
-  --risk-low-wash:      #16220f;
+  --risk-low:           #7fd184;
+  --risk-low-fill:      #4ca14f;
+  --risk-low-wash:      #12240f;
 
   --risk-medium:        #dcb64a;
-  --risk-medium-fill:   #b3891b;
+  --risk-medium-fill:   #d4a017;
   --risk-medium-wash:   #241d0c;
 
   --risk-high:          #f08a54;
@@ -126,9 +130,9 @@
   --risk-critical-fill: #b91c1c;
   --risk-critical-wash: #2b1211;
 
-  --provenance-live:    #58b8bd;
+  --provenance-live:    #4ade80;
   --provenance-demo:    #dcb64a;
-  --provenance-stale:   #8b8378;
+  --provenance-stale:   #829683;
 
   --shadow-card:  0 1px 2px rgb(0 0 0 / 0.5), 0 2px 8px rgb(0 0 0 / 0.36);
   --shadow-sheet: 0 2px 6px rgb(0 0 0 / 0.5), 0 16px 48px rgb(0 0 0 / 0.6);
@@ -222,8 +226,8 @@
 
 @media (prefers-contrast: more) {
   :root {
-    --content-tertiary: #44403c;
-    --hairline: #a8a29e;
+    --content-tertiary: #2c4030;
+    --hairline: #9cb59a;
   }
   .material-chrome { background: var(--surface); backdrop-filter: none; }
 }

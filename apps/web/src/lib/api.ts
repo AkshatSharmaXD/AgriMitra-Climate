@@ -287,6 +287,49 @@ export const api = {
       disclaimer: string;
     }>("/chat", { method: "POST", body: JSON.stringify(body) }),
 
+  getSchemes: (params: { state?: string; q?: string; language?: Language }) => {
+    const query = new URLSearchParams();
+    if (params.state) query.set("state", params.state);
+    if (params.q) query.set("q", params.q);
+    if (params.language) query.set("language", params.language);
+    return request<{
+      schemes: Array<{
+        name: string;
+        description: string;
+        link?: string;
+        category?: string;
+        benefit?: string;
+        scope: string;
+      }>;
+      /** The language actually returned — not necessarily the one requested. */
+      language: string;
+      states_available: string[];
+      source: string;
+      disclaimer: string;
+    }>(`/schemes${query.toString() ? `?${query}` : ""}`);
+  },
+
+  getMarketPrices: (state: string, commodity: string) =>
+    request<{
+      query: { state: string; commodity: string };
+      best: {
+        district: string;
+        market: string;
+        modal_price_per_quintal: number;
+        arrival_date: string | null;
+      };
+      prices: Array<{
+        district: string;
+        market: string;
+        modal_price_per_quintal: number;
+        arrival_date: string | null;
+      }>;
+      source: string;
+      disclaimer: string;
+    }>(
+      `/market?state=${encodeURIComponent(state)}&commodity=${encodeURIComponent(commodity)}`,
+    ),
+
   getDistrictOverview: () => request<StateOverview>("/districts/overview"),
 
   getInterventions: (district: string, language: Language = "en") =>

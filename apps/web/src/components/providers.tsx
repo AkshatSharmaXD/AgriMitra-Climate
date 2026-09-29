@@ -2,6 +2,8 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "next-themes";
+
+import { LanguageProvider } from "@/lib/language";
 import * as React from "react";
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -28,7 +30,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       // than an instant switch.
       disableTransitionOnChange
     >
-      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+      <QueryClientProvider client={client}>
+        <LanguageProvider>{children}</LanguageProvider>
+      </QueryClientProvider>
     </ThemeProvider>
   );
 }

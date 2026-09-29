@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Compass, Leaf, MessagesSquare, ScanLine, Sun } from "lucide-react";
+import { CloudSun, MapPinned, MessagesSquare, ScanLine, Sprout } from "lucide-react";
 
+import { LANGUAGES, useLanguage } from "@/lib/language";
 import { cn } from "@/lib/utils";
 
 /**
@@ -19,18 +20,60 @@ import { cn } from "@/lib/utils";
  * inside one-handed reach.
  */
 const TABS = [
-  { href: "/", label: "My Farm", Icon: Leaf },
-  { href: "/weather", label: "Weather", Icon: Sun },
+  { href: "/", label: "My Farm", Icon: Sprout },
+  { href: "/weather", label: "Weather", Icon: CloudSun },
   { href: "/scan", label: "Scan", Icon: ScanLine },
-  { href: "/districts", label: "Districts", Icon: Compass },
+  { href: "/districts", label: "Districts", Icon: MapPinned },
   { href: "/assistant", label: "Ask", Icon: MessagesSquare },
 ] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { language, setLanguage } = useLanguage();
 
   return (
     <div className="min-h-dvh">
+      {/* Masthead in crop green, so the app reads as agricultural at a glance
+          and the phone's status bar tints to match. The language control lives
+          here rather than per screen: choosing Hindi on the advisory used to
+          leave the assistant and the scheme list in English. */}
+      <header className="bg-accent text-accent-content">
+        <div className="mx-auto flex w-full max-w-screen-2xl items-center gap-3 px-4 py-3.5 md:px-8">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-white/15 ring-1 ring-white/25">
+            <Sprout aria-hidden className="size-5" strokeWidth={2} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="type-heading leading-tight">AgriMitra</p>
+            {/* The four language controls leave little room at 375px, where the
+                strapline wrapped to three lines. It returns once there is space. */}
+            <p className="type-caption hidden truncate leading-tight opacity-85 min-[420px]:block">
+              Climate-smart farming assistant
+            </p>
+          </div>
+
+          <div role="radiogroup" aria-label="Language" className="flex gap-1">
+            {LANGUAGES.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                role="radio"
+                aria-checked={language === option.value}
+                aria-label={option.label}
+                onClick={() => setLanguage(option.value)}
+                className={cn(
+                  "min-h-tap min-w-tap rounded-md px-2 type-caption font-semibold transition-colors",
+                  language === option.value
+                    ? "bg-white/25 ring-1 ring-white/40"
+                    : "opacity-75 hover:bg-white/10",
+                )}
+              >
+                {option.short}
+              </button>
+            ))}
+          </div>
+        </div>
+      </header>
+
       <main id="main" className="w-full px-4 md:px-8 pb-32 pt-6 min-h-dvh bg-gradient-to-br from-surface to-surface-sunken transition-colors duration-500">
         <div className="max-w-screen-2xl mx-auto w-full">
           {children}

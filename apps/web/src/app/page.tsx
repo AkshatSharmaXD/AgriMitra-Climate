@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
-import { Droplets, Leaf, MapPin, Sprout } from "lucide-react";
+import { Droplets, IndianRupee, Leaf, MapPin, ScrollText, Sprout } from "lucide-react";
 
 import { RiskStratum } from "@/components/charts/risk-stratum";
 import { PageHeader } from "@/components/layout/page-header";
@@ -262,7 +262,29 @@ export default function FarmDashboardPage() {
       </Card>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 pt-6 border-t border-hairline/50">
+      {/* Reference screens, useful on their own and reachable without a farm. */}
+      <div className="grid grid-cols-2 gap-3 pt-6 border-t border-hairline/50">
+        <Link
+          href="/market"
+          className="flex min-h-tap items-center gap-3 rounded-md border border-hairline bg-surface-raised p-4 active:scale-[0.99]"
+        >
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent">
+            <IndianRupee aria-hidden className="size-5" />
+          </span>
+          <span className="type-callout font-medium text-content">Mandi prices</span>
+        </Link>
+        <Link
+          href="/schemes"
+          className="flex min-h-tap items-center gap-3 rounded-md border border-hairline bg-surface-raised p-4 active:scale-[0.99]"
+        >
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent">
+            <ScrollText aria-hidden className="size-5" />
+          </span>
+          <span className="type-callout font-medium text-content">Schemes</span>
+        </Link>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
         <Button asChild size="lg" className="h-16 text-lg rounded-2xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all bg-gradient-to-r from-accent to-accent-hover" block>
           <Link href={`/advisory?farm=${farmId}`}>
             <Sprout aria-hidden className="size-6 mr-2" />
