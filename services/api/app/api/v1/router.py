@@ -10,6 +10,7 @@ from app.api.v1.routes import (
     farmers,
     farms,
     market,
+    news,
     recommendations,
     satellite,
     schemes,
@@ -32,3 +33,4 @@ api_router.include_router(chat.router, prefix="/chat", tags=["chat"])
 api_router.include_router(schemes.router, prefix="/schemes", tags=["schemes"])
 api_router.include_router(market.router, prefix="/market", tags=["market"])
 api_router.include_router(voice.router, prefix="/voice", tags=["voice"])
+api_router.include_router(news.router, prefix="/news", tags=["news"])

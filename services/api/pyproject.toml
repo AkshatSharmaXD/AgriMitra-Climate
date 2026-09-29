@@ -33,6 +33,8 @@ dependencies = [
     "google-cloud-bigquery>=3.26",
     "google-cloud-pubsub>=2.23",
     "redis>=5.2",
+    # Hardened XML parsing for third-party RSS.
+    "defusedxml>=0.7.1",
 ]
 
 [project.optional-dependencies]

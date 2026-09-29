@@ -330,6 +330,21 @@ export const api = {
       `/market?state=${encodeURIComponent(state)}&commodity=${encodeURIComponent(commodity)}`,
     ),
 
+  getNews: () =>
+    request<{
+      items: Array<{
+        title: string;
+        summary: string | null;
+        link: string;
+        published_at: string | null;
+        category: string | null;
+        publisher: string;
+      }>;
+      publisher: string;
+      source_url: string;
+      fetched_at: string;
+    }>("/news"),
+
   getDistrictOverview: () => request<StateOverview>("/districts/overview"),
 
   getInterventions: (district: string, language: Language = "en") =>

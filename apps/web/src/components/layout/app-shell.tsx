@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { CloudSun, MapPinned, MessagesSquare, ScanLine, Sprout } from "lucide-react";
 
+import { Splash } from "@/components/layout/splash";
 import { LANGUAGES, useLanguage } from "@/lib/language";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +34,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-dvh">
+      <Splash />
+
       {/* Masthead in crop green, so the app reads as agricultural at a glance
           and the phone's status bar tints to match. The language control lives
           here rather than per screen: choosing Hindi on the advisory used to

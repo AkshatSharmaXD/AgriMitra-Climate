@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import * as React from "react";
 import { Droplets, IndianRupee, Leaf, MapPin, ScrollText, Sprout } from "lucide-react";
 
+import { AgriNews } from "@/components/agri-news";
 import { RiskStratum } from "@/components/charts/risk-stratum";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
@@ -298,6 +299,9 @@ export default function FarmDashboardPage() {
           </Link>
         </Button>
       </div>
+
+      {/* Headlines last: useful context, but never above the farmer's own field. */}
+      <AgriNews />
     </div>
   );
 }
