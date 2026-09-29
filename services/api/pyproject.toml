@@ -11,6 +11,10 @@ dependencies = [
     "pydantic>=2.12,<3.0",
     "pydantic-settings>=2.7.1",
     "motor>=3.6.0",
+    # `pymongo[srv]` pulls dnspython, which `mongodb+srv://` Atlas URIs require.
+    # It happens to be installed transitively today; relying on that is the same
+    # mistake as the undeclared `form-data` import in docs/AUDIT.md (B7).
+    "pymongo[srv]>=4.9",
     "beanie>=1.29.0",
     "httpx>=0.28.1",
     "python-multipart>=0.0.20",

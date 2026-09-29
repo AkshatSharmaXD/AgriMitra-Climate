@@ -12,6 +12,7 @@ finished (audit B6, B8).
 
 from __future__ import annotations
 
+import argparse
 import asyncio
 import random
 from datetime import UTC, datetime, timedelta
@@ -195,5 +196,42 @@ async def seed() -> None:
     client.close()
 
 
+def _redact(uri: str) -> str:
+    """Hide the password before printing an Atlas connection string."""
+    if "@" not in uri:
+        return uri
+    scheme, _, rest = uri.partition("://")
+    credentials, _, host = rest.rpartition("@")
+    user = credentials.split(":", 1)[0] if credentials else ""
+    return f"{scheme}://{user}:***@{host}"
+
+
+def confirm_remote_target(assume_yes: bool) -> bool:
+    """Atlas is a shared, hosted cluster.
+
+    Deleting documents there is not the same as deleting them from a throwaway
+    local mongod. The clear is already scoped to is_demo records, but a mistyped
+    MONGODB_URI pointing at the wrong cluster should never be silent.
+    """
+    settings = get_settings()
+    if not settings.mongodb_is_remote or assume_yes:
+        return True
+
+    print(f"Target is a remote cluster: {_redact(settings.mongodb_uri)}")
+    print(f"Database: {settings.mongodb_db}")
+    print("This deletes every document marked is_demo=True and reseeds them.")
+    if input("Type the database name to continue: ").strip() != settings.mongodb_db:
+        print("Aborted. Nothing was changed.")
+        return False
+    return True
+
+
 if __name__ == "__main__":
-    asyncio.run(seed())
+    parser = argparse.ArgumentParser(description="Seed the AgriMitra demo dataset.")
+    parser.add_argument(
+        "--yes",
+        action="store_true",
+        help="Skip the confirmation prompt for a remote cluster (for CI).",
+    )
+    if confirm_remote_target(parser.parse_args().yes):
+        asyncio.run(seed())

@@ -24,8 +24,16 @@ weekly decision for one specific field.
 
 ## Running locally
 
+The database is **MongoDB Atlas**. Create a free cluster, add a database user, and
+allow your IP under Network Access. Then put the `mongodb+srv://` string in
+`services/api/.env` — it holds a password, so it must never be committed.
+
 ```bash
 cd services/api && python -m venv .venv && .venv/bin/pip install -e ".[dev]"
+```
+
+```bash
+cd services/api && .venv/bin/python -m scripts.seed
 ```
 
 ```bash

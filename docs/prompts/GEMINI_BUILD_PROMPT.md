@@ -203,11 +203,13 @@ Google Maps Platform · Cloud Run.
 | `services/api/app/integrations/gemini.py` | Structured-output client, safety instruction |
 | `services/api/app/api/v1/routes/*` | weather, satellite, farms, recommendations, advisory, diagnosis, districts |
 | `services/api/app/main.py` | CORS allowlist, rate limiting, security headers, `/health` |
+| `services/api/app/api/v1/routes/` | 21 endpoints, incl. chat, farmers, schemes, market, crops/explain |
+| `services/api/scripts/seed.py` | Idempotent demo seed, `is_demo` scoped, remote-cluster guard |
+| `services/api/tests/` | 49 passing tests (domain + routes + degradation) |
 | `apps/web/src/styles/globals.css` | **The design system.** Read §5. Do not restyle. |
-| `apps/web/src/lib/api.ts` | Typed client for every endpoint above |
-| `apps/web/src/components/layout/app-shell.tsx` | Bottom tab bar |
-| `apps/web/src/components/ui/provenance-badge.tsx` | The data-honesty primitive |
-| `apps/web/src/components/charts/risk-stratum.tsx` | **The signature visual.** §5.4 |
+| `apps/web/src/lib/api.ts` | Typed client for every endpoint |
+| `apps/web/src/components/` | ui/ (button, card, field, states, provenance-badge), layout/, charts/ |
+| `apps/web/src/app/` | All 10 routes — see §7.2, already built |
 
 ---
 
@@ -373,7 +375,19 @@ already types this and the types make it non-optional — keep it that way.
 
 ## 7. Work phases
 
-### 7.1 — Finish the web foundation
+**Phases 7.1, 7.2, 7.3 and 7.5 are already implemented and verified.** Their
+sections are kept below as the specification the existing code was built against —
+read them to understand what is there, then work only on **7.4, 7.6, 7.7 and 7.8**.
+
+Gates that are currently green and must stay green:
+
+```
+cd services/api && .venv/bin/python -m pytest && .venv/bin/ruff check .   # 49 passed
+cd apps/web && npm run typecheck && npm run lint && npm run build
+```
+
+
+### 7.1 — Web foundation — **DONE**
 
 - `npm install` in `apps/web`. Add `next-themes`; wire the `dark` class.
 - Add a `QueryClientProvider` (TanStack Query) and use it for every fetch. Set
@@ -386,7 +400,7 @@ already types this and the types make it non-optional — keep it that way.
 - **Loading is never a spinner on a blank screen.** Use `Skeleton` shaped like the
   content that is coming (`loading.md`).
 
-### 7.2 — Screens
+### 7.2 — Screens — **DONE**
 
 Routes under `apps/web/src/app/`. Five tabs already exist in `AppShell`.
 
@@ -456,7 +470,7 @@ search via `/weather/geocode`.
    always visible.
 5. `ProvenanceBadge provenance="demo"` at the top whenever `is_demo` is true (A8).
 
-### 7.3 — Voice and chat (PRD F10, F11, §14 — fixes A2, E1, E2)
+### 7.3 — Voice and chat — **DONE**
 
 Delete `legacy/web-vite/src/pages/VoicePage.tsx` behaviour entirely. The replacement
 is real or it does not ship:
@@ -496,7 +510,7 @@ In `services/inference`:
 - Add `tests/` with a golden-image case per branch: confident prediction, low
   confidence falling through to Gemini, non-plant rejection, oversized upload.
 
-### 7.5 — Data, seeding and the remaining endpoints
+### 7.5 — Data, seeding and endpoints — **DONE**
 
 - **Seed script** `services/api/scripts/seed.py` (PRD §17): 10 districts, 100 farms,
   10 crops, soil profiles, satellite snapshots, risks. Every document gets
@@ -510,9 +524,33 @@ In `services/inference`:
 
 ### 7.6 — Infrastructure (PRD §13A — fixes E10)
 
+**Database: MongoDB Atlas.** Not a local mongod, not a Mongo container. This
+changes several things:
+
+- `MONGODB_URI` is a `mongodb+srv://` string containing a password. It goes in
+  **Secret Manager** and is injected at runtime. It is never in a Dockerfile, an
+  image layer, a compose file, a CI variable or the repo. `.env` is gitignored;
+  keep it that way.
+- The `+srv` form needs `dnspython`, which is why `pymongo[srv]` is an explicit
+  dependency. Do not remove it because "it works without it" — it works only
+  because something else pulls dnspython in transitively, which is audit finding
+  B7 repeating itself.
+- Atlas **Network Access** must allow the caller. Cloud Run has no static egress
+  IP by default, so either allow `0.0.0.0/0` (acceptable for the hackathon, note it
+  in the README) or attach a VPC connector with Cloud NAT and allowlist that IP.
+- Shared tiers cap concurrent connections. `MONGODB_MAX_POOL_SIZE` defaults to 20
+  per instance — keep Cloud Run `max-instances` consistent with the cluster's limit.
+- `docker-compose.yml` runs **api + inference + web only**, reading `MONGODB_URI`
+  from the developer's environment. Do not add a `mongo` service; a local container
+  and an Atlas cluster silently diverging is worse than one source of truth.
+- `app/core/database.py` already self-heals: a failed connection schedules a
+  background reconnect and requests fail fast with 503 instead of waiting. Do not
+  replace this with a blocking retry loop in the request path.
+
+Then:
+
 - `infra/docker/Dockerfile.api`, `.inference`, `.web` — multi-stage, non-root user,
   `HEALTHCHECK` against each service's `/health`.
-- `docker-compose.yml` at the root: mongo + api + inference + web, one command.
 - `infra/github/workflows/ci.yml`: ruff + mypy + pytest for both Python services,
   `tsc --noEmit` + eslint + `next build` for the web app. CI must fail on any of them.
 - Cloud Run service YAML for all three. Secrets come from **Secret Manager**, never
@@ -522,9 +560,12 @@ In `services/inference`:
 
 ### 7.7 — Tests (fixes E9)
 
-- **Python:** extend `services/api/tests`. Add route tests with `httpx.ASGITransport`
-  and a mocked Gemini. Target the branches that matter: degraded weather, missing
-  NDVI, Gemini unavailable, oversized upload, invalid farm id.
+- **Python:** `services/api/tests` has 49 passing tests (domain, routes, validation,
+  provenance, database degradation) using `httpx.ASGITransport` with the lifespan
+  disabled. Extend it — do not restructure it. Still missing: database-backed route
+  tests against a disposable Atlas database or `mongomock-motor`, a mocked-Gemini
+  path for `/advisory`, `/chat` and `/districts/*/interventions`, and the
+  oversized-upload branch on `/diagnosis`.
 - **Web:** Playwright covering the PRD §23 Definition of Done — create farm → see
   weather → see risk → get advisory → get crop recommendations → scan a leaf → switch
   language. Plus an axe-core accessibility assertion per screen.

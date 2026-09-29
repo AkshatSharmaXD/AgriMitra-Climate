@@ -28,8 +28,16 @@ class Settings(BaseSettings):
     environment: str = "development"
     log_level: str = "INFO"
 
+    # Local default. In Atlas this is a `mongodb+srv://` URI containing a password,
+    # so it belongs in Secret Manager and never in the image or the repo.
     mongodb_uri: str = "mongodb://localhost:27017"
     mongodb_db: str = "agrimitra"
+
+    # Atlas sits across the public internet and an idle shared-tier cluster can be
+    # slow to first respond, so server selection needs more headroom than a
+    # loopback mongod. Shared tiers also cap connections, hence the modest pool.
+    mongodb_timeout_ms: int = 10_000
+    mongodb_max_pool_size: int = 20
 
     # Explicit allowlist. Never "*" — PRD §18 requires CORS restriction.
     cors_origins: list[str] = Field(default=["http://localhost:3000"])
@@ -51,6 +59,17 @@ class Settings(BaseSettings):
 
     def configured(self, value: str | None) -> bool:
         return value is not None and value.strip() not in PLACEHOLDERS
+
+    @property
+    def mongodb_is_remote(self) -> bool:
+        """True for anything that is not a loopback mongod.
+
+        Used to refuse destructive operations against a hosted cluster unless the
+        operator confirms.
+        """
+        return not any(
+            host in self.mongodb_uri for host in ("localhost", "127.0.0.1", "[::1]")
+        )
 
     @property
     def gemini_enabled(self) -> bool:
