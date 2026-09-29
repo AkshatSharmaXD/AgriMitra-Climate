@@ -55,6 +55,30 @@ logger = structlog.get_logger(__name__)
 CLASSIFIER = None
 MODEL_ID = "linkanjarad/mobilenet_v2_1.0_224-plant-disease-identification"
 
+# The checkpoint's 38 classes cover exactly these 14 crops. Deriving this from
+# `id2label` at load time is unreliable: a label like "Cedar Apple Rust" carries
+# the crop as the middle token of a multi-word disease name, not as a prefix
+# that can be stripped mechanically (unlike "Healthy Apple"). So this mirrors
+# the checkpoint's card by hand — verified against its full label list — rather
+# than pretending to derive it. Anything outside this list is out-of-distribution
+# for the model, and low confidence on it is expected, not a bug.
+SUPPORTED_CROPS = [
+    "Apple",
+    "Bell pepper",
+    "Blueberry",
+    "Cherry",
+    "Corn",
+    "Grape",
+    "Orange",
+    "Peach",
+    "Potato",
+    "Raspberry",
+    "Soybean",
+    "Squash",
+    "Strawberry",
+    "Tomato",
+]
+
 MAX_FILE_SIZE = 10 * 1024 * 1024
 ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/webp"}
 
@@ -176,6 +200,7 @@ async def health() -> dict:
         "model_loaded": CLASSIFIER is not None,
         "model_id": MODEL_ID,
         "gemini_fallback": bool(settings.gemini_api_key),
+        "supported_crops": SUPPORTED_CROPS,
     }
 
 
@@ -188,9 +213,13 @@ async def analyze_with_gemini(pil_img: Image.Image) -> dict:
             "label": "uncertain",
             "confidence": None,
             "guidance": (
-                "The image model was not confident enough to name a disease, and the "
-                "second-opinion model is not configured on this server. Try a closer, "
-                "well-lit photo of a single affected leaf."
+                "The image model was not confident enough to name a disease. This is "
+                "often because the leaf's crop is outside the "
+                f"{len(SUPPORTED_CROPS)} crops this scanner was trained on "
+                f"({', '.join(SUPPORTED_CROPS)}) — not a fault with the photo. A "
+                "second-opinion model could still weigh in, but Gemini is not "
+                "configured on this server, so try a closer, well-lit photo only if "
+                "your crop is one of the ones listed above."
             ),
             "source": "unavailable",
         }
@@ -297,11 +326,13 @@ async def predict(file: UploadFile = File(...)) -> dict:
             "source": "leaf-detector",
             "detail": frame.reason,
             "elapsed_ms": int((time.perf_counter() - started) * 1000),
+            "supported_crops": SUPPORTED_CROPS,
         }
 
     if CLASSIFIER is None:
         result = await analyze_with_gemini(frame.image)
         result["elapsed_ms"] = int((time.perf_counter() - started) * 1000)
+        result["supported_crops"] = SUPPORTED_CROPS
         return result
 
     try:
@@ -320,6 +351,7 @@ async def predict(file: UploadFile = File(...)) -> dict:
     if not predictions:
         result = await analyze_with_gemini(frame.image)
         result["elapsed_ms"] = int((time.perf_counter() - started) * 1000)
+        result["supported_crops"] = SUPPORTED_CROPS
         return result
 
     top = predictions[0]
@@ -331,6 +363,7 @@ async def predict(file: UploadFile = File(...)) -> dict:
         result["elapsed_ms"] = int((time.perf_counter() - started) * 1000)
         result["classifier_best_guess"] = pretty(top["label"])
         result["classifier_confidence"] = confidence
+        result["supported_crops"] = SUPPORTED_CROPS
         return result
 
     elapsed_ms = int((time.perf_counter() - started) * 1000)
@@ -350,6 +383,7 @@ async def predict(file: UploadFile = File(...)) -> dict:
         "source": "mobilenet-v2",
         "leaf_ratio": round(frame.leaf_ratio, 3),
         "elapsed_ms": elapsed_ms,
+        "supported_crops": SUPPORTED_CROPS,
     }
 
 

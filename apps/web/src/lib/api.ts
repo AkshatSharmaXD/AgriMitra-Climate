@@ -225,6 +225,27 @@ export interface Health {
   capabilities: { gemini: boolean; earth_engine: boolean; market_data: boolean };
 }
 
+/**
+ * Crops the leaf-disease model was actually trained on. The API surfaces this
+ * itself (inference service's `SUPPORTED_CROPS`, forwarded on `/health` and
+ * every `/v1/predict` response) so the client never hardcodes a copy that can
+ * drift from the checkpoint.
+ */
+export interface DiagnosisResult {
+  label: string;
+  /** Null, not 0, when the model was not confident enough to score at all. */
+  confidence: number | null;
+  guidance: string;
+  source: string;
+  disclaimer: string;
+  supported_crops?: string[];
+  /** Present on the low-confidence / escalated path: the classifier's own
+   * best guess, surfaced instead of discarded even though it fell below the
+   * threshold the app trusts on its own. */
+  classifier_best_guess?: string;
+  classifier_confidence?: number;
+}
+
 /* ------------------------------- endpoints ------------------------------ */
 
 export const api = {
@@ -318,14 +339,12 @@ export const api = {
   getAdvisory: (body: Record<string, unknown>) =>
     request<Advisory>("/advisory", { method: "POST", body: JSON.stringify(body) }),
 
-  diagnose: (form: FormData) =>
-    request<{
-      label: string;
-      confidence: number;
-      guidance: string;
-      source: string;
-      disclaimer: string;
-    }>("/diagnosis", { method: "POST", body: form }),
+  diagnose: (form: FormData) => request<DiagnosisResult>("/diagnosis", { method: "POST", body: form }),
+
+  /** Read before a photo is taken, so the scan page can tell a farmer up front
+   * which crops the model actually covers instead of only after a wasted scan. */
+  getSupportedCrops: () =>
+    request<{ supported_crops: string[] }>("/diagnosis/supported-crops"),
 
   chat: (body: {
     farm_id: string;

@@ -6,6 +6,8 @@ the inference service. The result is persisted against the farm so the risk engi
 sees a real observation instead of its neutral baseline.
 """
 
+import time
+
 import httpx
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
@@ -17,10 +19,40 @@ from app.models.documents import DiseaseAnalysis
 router = APIRouter()
 settings = get_settings()
 
+# Short-lived cache: the crop list only changes when the inference model
+# checkpoint changes (a deploy), so there is no reason to hit that service on
+# every page load just to answer "what can you diagnose?" before a scan.
+_supported_crops_cache: dict[str, object] = {"crops": None, "fetched_at": 0.0}
+_SUPPORTED_CROPS_TTL_SECONDS = 300
+
 HEDGE = (
     "This is a possible identification from an image model, not a confirmed diagnosis. "
     "Confirm with your local agricultural extension officer before applying any treatment."
 )
+
+
+@router.get("/supported-crops")
+async def supported_crops() -> dict:
+    """Which crops the leaf scanner can actually diagnose, straight from the
+    inference service's own model metadata — so the client shows this before
+    a farmer wastes a photo on a crop the model was never trained on."""
+    now = time.monotonic()
+    cached = _supported_crops_cache["crops"]
+    age = now - float(_supported_crops_cache["fetched_at"])
+    if cached is not None and age < _SUPPORTED_CROPS_TTL_SECONDS:
+        return {"supported_crops": cached}
+
+    try:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(10.0, connect=5.0)) as client:
+            response = await client.get(f"{settings.inference_service_url}/health")
+            response.raise_for_status()
+            crops = response.json().get("supported_crops", [])
+    except httpx.HTTPError as exc:
+        raise HTTPException(503, "Diagnosis service is unavailable right now.") from exc
+
+    _supported_crops_cache["crops"] = crops
+    _supported_crops_cache["fetched_at"] = now
+    return {"supported_crops": crops}
 
 
 @router.post("")
@@ -69,11 +101,14 @@ async def analyze_leaf(
     stored = False
     if farm_id and result.get("label") and is_connected():
         stored = True
+        # `confidence` is None on the escalated / uncertain path — float(None)
+        # raises, which would turn a truthful "uncertain" result into a 500.
+        raw_confidence = result.get("confidence")
         await DiseaseAnalysis(
             farm_id=farm_id,
             crop=crop,
             label=result["label"],
-            confidence=float(result.get("confidence", 0.0)),
+            confidence=float(raw_confidence) if raw_confidence is not None else 0.0,
             recommendation=result.get("guidance"),
             source=result.get("source", "inference"),
             image_ref=image_ref,

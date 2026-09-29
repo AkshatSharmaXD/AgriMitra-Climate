@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import * as React from "react";
 import { Camera, ImageUp, Loader2, RotateCcw } from "lucide-react";
 
@@ -11,6 +11,7 @@ import { ProvenanceBadge } from "@/components/ui/provenance-badge";
 import { ErrorState } from "@/components/ui/states";
 import { api } from "@/lib/api";
 import { useActiveFarmId } from "@/lib/active-farm";
+import { isCropSupported } from "@/lib/crop-support";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED = ["image/jpeg", "image/png", "image/webp"];
@@ -27,6 +28,26 @@ export default function ScanPage() {
   const { farmId } = useActiveFarmId();
   const [preview, setPreview] = React.useState<string | null>(null);
   const [guardError, setGuardError] = React.useState<string | null>(null);
+
+  // Loaded before any photo is taken so the farmer can see what the scanner
+  // actually covers, instead of only discovering it via an "uncertain" result.
+  const supportedCropsQuery = useQuery({
+    queryKey: ["diagnosis-supported-crops"],
+    queryFn: () => api.getSupportedCrops(),
+    staleTime: 10 * 60 * 1000,
+  });
+  const supportedCrops = supportedCropsQuery.data?.supported_crops ?? [];
+
+  const farmQuery = useQuery({
+    queryKey: ["farm", farmId],
+    queryFn: () => api.getFarm(farmId as string),
+    enabled: farmId != null,
+  });
+  const farmCrop = farmQuery.data?.crop ?? null;
+  const farmCropSupported =
+    farmCrop != null && supportedCrops.length > 0
+      ? isCropSupported(farmCrop, supportedCrops)
+      : null;
 
   React.useEffect(() => {
     return () => {
@@ -83,6 +104,26 @@ export default function ScanPage() {
         title="Leaf scan"
         description="Photograph an affected leaf. The result is a possible identification, not a diagnosis."
       />
+
+      {supportedCrops.length > 0 ? (
+        <p className="type-caption text-content-tertiary">
+          This scanner recognises diseases on:{" "}
+          {supportedCrops
+            .map((crop) => (crop === "Corn" ? "Maize (Corn)" : crop))
+            .join(", ")}
+          . A photo of any other crop will likely come back uncertain.
+        </p>
+      ) : null}
+
+      {farmCrop != null && farmCropSupported === false ? (
+        <Card className="border-risk-medium bg-risk-medium-wash">
+          <p className="type-callout text-risk-medium">
+            Your crop ({farmCrop}) is not one this scanner was trained on. The result
+            will likely be uncertain. A second-opinion AI model can still assess it if
+            this server has Gemini configured.
+          </p>
+        </Card>
+      ) : null}
 
       {!preview ? (
         <div className="grid grid-cols-2 gap-3">
@@ -165,19 +206,43 @@ export default function ScanPage() {
                 }
               />
               {/* Confidence is a number with a bar, never a fabricated severity band.
-                  The previous client hardcoded `severity: "Medium"` (audit A5). */}
-              <div className="flex items-baseline gap-2">
-                <span className="type-title type-numeric text-content">
-                  {Math.round(result.confidence * 100)}%
-                </span>
-                <span className="type-callout text-content-secondary">model confidence</span>
-              </div>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-sunken">
-                <div
-                  className="h-full rounded-full bg-accent"
-                  style={{ width: `${Math.round(result.confidence * 100)}%` }}
-                />
-              </div>
+                  The previous client hardcoded `severity: "Medium"` (audit A5).
+                  `confidence` is null — not 0 — when the model never scored the
+                  image at all; rendering "0%" there would tell the farmer the
+                  model was certain of nothing, when really it wasn't asked. */}
+              {result.confidence != null ? (
+                <>
+                  <div className="flex items-baseline gap-2">
+                    <span className="type-title type-numeric text-content">
+                      {Math.round(result.confidence * 100)}%
+                    </span>
+                    <span className="type-callout text-content-secondary">
+                      model confidence
+                    </span>
+                  </div>
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-sunken">
+                    <div
+                      className="h-full rounded-full bg-accent"
+                      style={{ width: `${Math.round(result.confidence * 100)}%` }}
+                    />
+                  </div>
+                </>
+              ) : (
+                <p className="type-callout text-content-secondary">
+                  Not confident enough to score.
+                </p>
+              )}
+              {/* The classifier's own best guess, kept visible instead of thrown
+                  away just because it fell below the trusted threshold. */}
+              {result.classifier_best_guess ? (
+                <p className="type-caption mt-2 text-content-tertiary">
+                  Closest match: {result.classifier_best_guess}
+                  {result.classifier_confidence != null
+                    ? ` (${Math.round(result.classifier_confidence * 100)}%)`
+                    : ""}{" "}
+                  — too uncertain to rely on.
+                </p>
+              ) : null}
             </Card>
 
             <Card>

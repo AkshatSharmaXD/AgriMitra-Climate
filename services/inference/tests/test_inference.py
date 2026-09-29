@@ -190,3 +190,36 @@ class TestHealth:
         body = response.json()
         assert body["model_loaded"] is (main.CLASSIFIER is not None)
         assert body["status"] == ("ok" if main.CLASSIFIER is not None else "degraded")
+
+    def test_reports_supported_crops(self):
+        response = client.get("/health")
+        body = response.json()
+        assert isinstance(body["supported_crops"], list)
+        assert len(body["supported_crops"]) > 0
+        assert "Corn" in body["supported_crops"]
+
+
+class TestSupportedCrops:
+    def test_predict_response_includes_supported_crops(self, monkeypatch):
+        def fake_classifier(image, top_k=1):
+            return [{"label": "Tomato___Early_blight", "score": 0.91}][:top_k]
+
+        monkeypatch.setattr(main, "CLASSIFIER", fake_classifier)
+        response = post(swatch((62, 138, 54)))
+        body = response.json()
+        assert isinstance(body["supported_crops"], list)
+        assert len(body["supported_crops"]) > 0
+
+    def test_uncertain_guidance_names_the_reason(self, monkeypatch):
+        """The old copy only said 'try a closer photo', which is false when the
+        real reason is an unsupported crop or a missing Gemini key."""
+        monkeypatch.setattr(main, "CLASSIFIER", None)
+        monkeypatch.setattr(main.settings, "gemini_api_key", None)
+        response = post(swatch((62, 138, 54)))
+        body = response.json()
+
+        assert body["label"] == "uncertain"
+        assert body["source"] == "unavailable"
+        guidance = body["guidance"].lower()
+        assert "trained on" in guidance or "supported" in guidance
+        assert "not configured" in guidance
