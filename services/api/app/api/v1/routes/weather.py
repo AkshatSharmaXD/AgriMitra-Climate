@@ -2,7 +2,12 @@
 
 from fastapi import APIRouter, HTTPException, Query
 
-from app.integrations.weather import geocode, get_seasonal_rainfall_mm, get_weather
+from app.integrations.weather import (
+    geocode,
+    get_seasonal_rainfall_mm,
+    get_weather,
+    reverse_geocode,
+)
 
 router = APIRouter()
 
@@ -24,6 +29,20 @@ async def read_seasonal_rainfall(
     result = await get_seasonal_rainfall_mm(lat, lng, season)
     if result is None:
         raise HTTPException(503, "Rainfall archive is unavailable right now.")
+    return result
+
+
+@router.get("/reverse-geocode")
+async def read_reverse_geocode(
+    lat: float = Query(ge=-90, le=90),
+    lng: float = Query(ge=-180, le=180),
+) -> dict:
+    """District and state for a GPS fix, so the farm form can fill itself in."""
+    result = await reverse_geocode(lat, lng)
+    if result is None:
+        raise HTTPException(
+            404, "Could not identify a district for this location. Enter it manually."
+        )
     return result
 
 

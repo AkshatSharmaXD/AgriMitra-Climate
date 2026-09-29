@@ -204,6 +204,15 @@ export const api = {
       lng: number;
     }>(`/weather/geocode?q=${encodeURIComponent(q)}`),
 
+  reverseGeocode: (lat: number, lng: number) =>
+    request<{
+      district: string | null;
+      state: string | null;
+      lat: number;
+      lng: number;
+      source: string;
+    }>(`/weather/reverse-geocode?lat=${lat}&lng=${lng}`),
+
   getSatellite: (lat: number, lng: number, district?: string) =>
     request<Satellite>(
       `/satellite?lat=${lat}&lng=${lng}${district ? `&district=${encodeURIComponent(district)}` : ""}`,

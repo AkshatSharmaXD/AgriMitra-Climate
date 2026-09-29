@@ -6,9 +6,12 @@ numpy>=1.26.4
 opencv-python-headless>=4.9.0.80
 transformers>=4.38.2
 torch>=2.2.1
+# The image processor falls back to a slower PIL backend without it.
+torchvision>=0.17
 google-genai>=1.9.0
 pydantic-settings
 pytest
 httpx
 ruff
 structlog
+anyio>=4.6

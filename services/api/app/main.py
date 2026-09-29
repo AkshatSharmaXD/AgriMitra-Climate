@@ -111,7 +111,14 @@ async def health() -> dict[str, object]:
         "capabilities": {
             "database": is_connected(),
             "gemini": settings.gemini_enabled,
+            "gemini_via_vertex": settings.use_vertex_ai and settings.gemini_enabled,
             "earth_engine": settings.earth_engine_enabled,
             "market_data": settings.market_data_enabled,
+            "image_storage": settings.cloud_storage_enabled,
+            "cloud_speech": settings.cloud_speech_enabled,
+            "translation": settings.translation_enabled,
+            "analytics_warehouse": settings.bigquery_enabled,
+            "async_refresh": settings.pubsub_enabled,
+            "cache": settings.cache_enabled,
         },
     }

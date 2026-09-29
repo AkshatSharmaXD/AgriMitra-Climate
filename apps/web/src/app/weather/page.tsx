@@ -1,14 +1,15 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
 import * as React from "react";
-import { Droplets, Search, Wind } from "lucide-react";
+import { Droplets, MapPin, Search, Wind } from "lucide-react";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { ProvenanceBadge } from "@/components/ui/provenance-badge";
-import { ErrorState, Skeleton } from "@/components/ui/states";
+import { EmptyState, ErrorState, Skeleton } from "@/components/ui/states";
 import { api } from "@/lib/api";
 import { useActiveFarmId } from "@/lib/active-farm";
 import { formatDate, formatDay, formatTime, weatherLabel } from "@/lib/format";
@@ -92,7 +93,20 @@ export default function WeatherPage() {
 
       {searchError ? <ErrorState title="Place not found" detail={searchError} /> : null}
 
-      {!location ? (
+      {!location && !farmId ? (
+        // No farm registered and no place searched yet. An indefinite skeleton
+        // here reads as a hung page, because nothing is actually loading.
+        <EmptyState
+          icon={MapPin}
+          title="Search for a place"
+          description="Or register your farm to see weather for your own field every time you open this."
+          action={
+            <Button asChild variant="secondary">
+              <Link href="/farm/new">Register your farm</Link>
+            </Button>
+          }
+        />
+      ) : !location ? (
         <Skeleton className="h-48 w-full" />
       ) : weather.isPending ? (
         <Skeleton className="h-48 w-full" />

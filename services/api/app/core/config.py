@@ -56,6 +56,10 @@ class Settings(BaseSettings):
     # --- Google Cloud services ----------------------------------------------
     # Leaf-scan images. Absent -> the diagnosis is still stored, without a photo.
     gcs_bucket: str | None = None
+    # Server-side Geocoding key. Turns the farmer's GPS fix into a district and
+    # state so they do not have to type them. Restrict this key to the Geocoding
+    # API by IP — it is not the browser Maps key.
+    google_maps_api_key: str | None = None
     # Server-side speech, for browsers with no Web Speech API.
     enable_cloud_speech: bool = False
     # Static reference text (the scheme directory) in the farmer's language.
@@ -104,6 +108,10 @@ class Settings(BaseSettings):
     @property
     def cloud_storage_enabled(self) -> bool:
         return self.configured(self.gcs_bucket)
+
+    @property
+    def geocoding_enabled(self) -> bool:
+        return self.configured(self.google_maps_api_key)
 
     @property
     def cloud_speech_enabled(self) -> bool:

@@ -16,8 +16,14 @@ class TestHealth:
         # Capabilities must mirror config, not be hardcoded optimistically —
         # the UI badges data provenance from this.
         settings = get_settings()
-        assert body["capabilities"]["gemini"] is settings.gemini_enabled
-        assert body["capabilities"]["earth_engine"] is settings.earth_engine_enabled
+        capabilities = body["capabilities"]
+        assert capabilities["gemini"] is settings.gemini_enabled
+        assert capabilities["earth_engine"] is settings.earth_engine_enabled
+        assert capabilities["image_storage"] is settings.cloud_storage_enabled
+        assert capabilities["cloud_speech"] is settings.cloud_speech_enabled
+        assert capabilities["translation"] is settings.translation_enabled
+        assert capabilities["analytics_warehouse"] is settings.bigquery_enabled
+        assert capabilities["cache"] is settings.cache_enabled
 
     async def test_sets_security_headers(self, client):
         response = await client.get("/health")

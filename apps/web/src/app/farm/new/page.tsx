@@ -56,6 +56,7 @@ export default function NewFarmPage() {
   const [district, setDistrict] = React.useState("");
   const [locating, setLocating] = React.useState(false);
   const [locateError, setLocateError] = React.useState<string | null>(null);
+  const [resolvedPlace, setResolvedPlace] = React.useState<string | null>(null);
 
   const [crop, setCrop] = React.useState("");
   const [season, setSeason] = React.useState<Season | null>("Rabi");
@@ -98,24 +99,59 @@ export default function NewFarmPage() {
     Boolean(irrigation),
   ];
 
-  function useMyLocation() {
+  function detectLocation() {
     setLocateError(null);
+    setResolvedPlace(null);
+
+    if (!window.isSecureContext) {
+      // Browsers only expose geolocation over HTTPS or on localhost. Without
+      // this check the API is simply absent and the button looks broken.
+      setLocateError(
+        "Location sharing needs a secure (https) connection. Enter the coordinates below.",
+      );
+      return;
+    }
     if (!("geolocation" in navigator)) {
       setLocateError("This browser cannot share a location. Enter the coordinates below.");
       return;
     }
+
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setLat(position.coords.latitude.toFixed(4));
-        setLng(position.coords.longitude.toFixed(4));
-        setLocating(false);
+      async (position) => {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+        setLat(latitude.toFixed(4));
+        setLng(longitude.toFixed(4));
+
+        // Coordinates alone left the farmer to type their district and state,
+        // so the step stayed incomplete and the button appeared to do nothing.
+        try {
+          const place = await api.reverseGeocode(latitude, longitude);
+          if (place.district) setDistrict(place.district);
+          if (place.state) setState(place.state);
+          setResolvedPlace(
+            [place.district, place.state].filter(Boolean).join(", ") || "your location",
+          );
+        } catch {
+          setLocateError(
+            "Got your coordinates, but could not identify the district. Please type it below.",
+          );
+        } finally {
+          setLocating(false);
+        }
       },
-      () => {
+      (error) => {
         setLocating(false);
-        setLocateError("Location was not shared. Enter the coordinates below instead.");
+        setLocateError(
+          error.code === error.PERMISSION_DENIED
+            ? "Location permission was declined. Enter the coordinates below instead."
+            : error.code === error.TIMEOUT
+              ? "Getting a location fix took too long. Try again outdoors, or type the coordinates."
+              : "Your location could not be determined. Enter the coordinates below.",
+        );
       },
-      { enableHighAccuracy: true, timeout: 10_000 },
+      { enableHighAccuracy: true, timeout: 15_000, maximumAge: 60_000 },
     );
   }
 
@@ -226,7 +262,7 @@ export default function NewFarmPage() {
 
         {step === 1 ? (
           <>
-            <Button variant="secondary" size="lg" block onClick={useMyLocation} disabled={locating}>
+            <Button variant="secondary" size="lg" block onClick={detectLocation} disabled={locating}>
               {locating ? (
                 <Loader2 aria-hidden className="size-5 animate-spin" />
               ) : (
@@ -238,6 +274,11 @@ export default function NewFarmPage() {
               Your location is used to fetch weather and satellite data for this field. It
               is stored with your farm record and sent nowhere else.
             </p>
+            {resolvedPlace ? (
+              <p className="rounded-md bg-accent-soft px-3 py-2 type-callout font-medium text-accent">
+                Located: {resolvedPlace}. Check the fields below and correct anything wrong.
+              </p>
+            ) : null}
             {locateError ? (
               <ErrorState variant="offline" title="Location unavailable" detail={locateError} />
             ) : null}

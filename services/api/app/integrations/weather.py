@@ -140,6 +140,91 @@ async def get_seasonal_rainfall_mm(lat: float, lng: float, season: str) -> dict[
     return payload
 
 
+GOOGLE_GEOCODE_URL = "https://maps.googleapis.com/maps/api/geocode/json"
+
+
+async def reverse_geocode(lat: float, lng: float) -> dict[str, Any] | None:
+    """Turn a GPS fix into district and state.
+
+    The farm form's "use my location" button filled latitude and longitude and
+    stopped there, leaving the farmer to type their district and state by hand —
+    which made the button look broken, because the form stayed incomplete.
+
+    Google Geocoding is used when a key is configured, because it resolves Indian
+    administrative levels (``administrative_area_level_3`` is the district) far
+    more reliably than the open alternatives. Falls back to Open-Meteo's reverse
+    lookup, and finally returns None so the fields stay manually editable.
+    """
+    from app.core.config import get_settings
+
+    settings = get_settings()
+
+    if settings.geocoding_enabled:
+        try:
+            async with httpx.AsyncClient(timeout=TIMEOUT) as client:
+                response = await client.get(
+                    GOOGLE_GEOCODE_URL,
+                    params={
+                        "latlng": f"{lat},{lng}",
+                        "key": settings.google_maps_api_key,
+                        "result_type": "administrative_area_level_3|administrative_area_level_2"
+                        "|administrative_area_level_1|locality",
+                        "language": "en",
+                    },
+                )
+                response.raise_for_status()
+                body = response.json()
+
+            if body.get("status") == "OK":
+                district: str | None = None
+                state: str | None = None
+                for result in body.get("results", []):
+                    for component in result.get("address_components", []):
+                        types = component.get("types", [])
+                        name = component.get("long_name")
+                        # level_3 is the district in India; level_2 is the usual
+                        # fallback where level_3 is not published.
+                        if "administrative_area_level_3" in types and not district:
+                            district = name
+                        elif "administrative_area_level_2" in types and not district:
+                            district = name
+                        elif "administrative_area_level_1" in types and not state:
+                            state = name
+                if district or state:
+                    return {
+                        "district": district,
+                        "state": state,
+                        "lat": lat,
+                        "lng": lng,
+                        "source": "google-geocoding",
+                    }
+        except (httpx.HTTPError, ValueError, KeyError):
+            pass  # fall through to the open provider
+
+    try:
+        async with httpx.AsyncClient(timeout=TIMEOUT) as client:
+            response = await client.get(
+                "https://geocoding-api.open-meteo.com/v1/search",
+                params={"latitude": lat, "longitude": lng, "count": 1, "format": "json"},
+            )
+            response.raise_for_status()
+            results = response.json().get("results") or []
+    except (httpx.HTTPError, ValueError):
+        return None
+
+    if not results:
+        return None
+
+    top = results[0]
+    return {
+        "district": top.get("admin2") or top.get("name"),
+        "state": top.get("admin1"),
+        "lat": lat,
+        "lng": lng,
+        "source": "open-meteo-geocoding",
+    }
+
+
 async def geocode(query: str) -> dict[str, Any] | None:
     try:
         async with httpx.AsyncClient(timeout=TIMEOUT) as client:
