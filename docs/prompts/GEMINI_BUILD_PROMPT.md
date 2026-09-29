@@ -24,6 +24,114 @@ Three rules override everything else in this document:
    currently has 22 passing tests that pin real bug fixes. If a change breaks one,
    the change is wrong.
 
+### 0.1 How to work
+
+The phases in §7 are sequenced so each one compiles and runs on its own. Work them
+one at a time.
+
+**The loop for every phase:**
+
+1. Read the existing code you are about to touch. Do not guess an interface — open
+   the file. `services/api/app/` and `apps/web/src/lib/api.ts` are the contracts.
+2. Write the code.
+3. Run the gate before moving on. A phase is not finished until its gate is green:
+   - Python: `cd services/api && .venv/bin/python -m pytest && .venv/bin/ruff check .`
+   - Web: `cd apps/web && npm run typecheck && npm run lint && npm run build`
+4. Commit that phase on its own, with a message that says what changed and why.
+5. Only then start the next phase.
+
+**Non-negotiable working rules:**
+
+- **Never skip the gate because the change "looks obviously correct".** Every bug in
+  `docs/AUDIT.md` looked obviously correct to whoever wrote it.
+- **Never batch six phases into one giant diff.** If a gate fails, you must be able
+  to tell which change caused it.
+- **Do not leave a phase half-done and move on.** A screen that renders but has no
+  error state, no empty state and no loading state is not done — it is three bugs
+  waiting for a demo.
+- **When the spec here and the code disagree, stop and say so.** Do not silently pick
+  one. Report the contradiction and what you chose.
+- **When something is blocked, finish everything that is not blocked**, then state
+  plainly what you left out and why. Do not quietly narrow the scope.
+- **Report failures honestly.** If tests fail, paste the failing output. Never
+  describe work as complete when a gate is red.
+
+### 0.2 Approach — what to use, what not to use
+
+These are settled. Do not substitute your own preference.
+
+**Backend — use**
+
+- `async def` end to end. Every I/O call is awaited; `httpx.AsyncClient`, Motor, and
+  the Gemini `client.aio` interface are already used this way.
+- Pydantic v2 models for every request and response body. Validation lives in the
+  schema, not in hand-written `if` blocks inside the route.
+- Pure functions in `app/domain/`. They take plain arguments and return dataclasses.
+  **They never touch the database, the network, or `Settings`.** That is what makes
+  them testable, and it is why the 22 tests exist.
+- `HTTPException` with a message a farmer could read.
+- `structlog` for logging.
+
+**Backend — do not use**
+
+- **No blocking I/O in an async route.** No `requests`, no `time.sleep`, no
+  synchronous `pymongo`. One blocking call stalls the whole event loop.
+- **No business logic in a route handler.** Routes parse, delegate to `app/domain/`,
+  and serialise. If a route grows a formula, it is in the wrong file.
+- **No bare `except:` and no `except Exception: pass`.** Catch the specific error.
+  A swallowed exception is how the old code turned a dead weather API into
+  "0 °C, no rain".
+- **No `or` as a default for a numeric value.** `rainfall or 100` treats a real
+  `0.0` reading as missing and fabricates `100`. That exact line is audit finding
+  B4. Use `if value is None`.
+- **No mutable default arguments**, and no module-level mutable state outside the
+  explicit `lru_cache` providers already in place.
+- **No new secret with a working default.** A missing key degrades to a labelled
+  fallback; it never silently uses something that happens to work.
+
+**Frontend — use**
+
+- **React Server Components by default.** Add `"use client"` only when the file
+  actually needs state, an effect, or a browser API. The tab bar and `RiskStratum`
+  need it; a static card does not.
+- TanStack Query for every client-side fetch, through `apps/web/src/lib/api.ts`.
+- Radix primitives for anything with focus management — dialog, select, tabs,
+  tooltip. Do not hand-roll a focus trap.
+- `motion/react` for animation, with the springs specified in §5.5.
+- Tailwind classes bound to the design tokens. `cn()` from `@/lib/utils` for merging.
+- Zod for form validation, mirroring the Pydantic schema on the server.
+
+**Frontend — do not use**
+
+- **No hardcoded colour.** No hex, no `rgb()`, no Tailwind palette class
+  (`bg-green-600`, `text-red-500`). Every colour comes from the tokens in
+  `globals.css`. This is checkable: `grep -rE "#[0-9a-fA-F]{6}|bg-(red|green|blue|yellow|orange)-[0-9]" apps/web/src/components` must return nothing.
+- **No second UI kit.** No MUI, no Chakra, no Ant, no shadcn wholesale import. The
+  primitives in §7.1 are built on Radix against these tokens.
+- **No CSS-in-JS**, no `styled-components`, no inline `style` for anything a token
+  covers. Inline `style` is allowed only for a computed value — a bar's height, a
+  stratum's width.
+- **No `any`.** No `@ts-ignore`. `tsconfig.json` sets `strict` and
+  `noUncheckedIndexedAccess`; keep both.
+- **No `useEffect` for data fetching.** That is what TanStack Query is for.
+- **No `setTimeout` that simulates work.** The old splash screen blocked the app for
+  2.8 seconds and the old voice page faked listening for 3. Both are audit findings.
+- **No spinner on a blank screen.** Skeletons shaped like the incoming content.
+- **No `maximum-scale=1` or `user-scalable=no`.** Pinch-zoom is an accessibility
+  affordance.
+- **No CSS transition on a gesture-driven element.** It cannot be grabbed and
+  reversed mid-flight. Use a spring.
+
+**Both — do not use**
+
+- **No new dependency without a reason you can state in one line.** The stack in §2
+  is sufficient for everything in §7.
+- **No commented-out code, no `TODO` left behind, no dead file.** If it is not used,
+  delete it.
+- **No copying from `legacy/`.** Read it to understand the behaviour, then write the
+  new implementation against the current contracts. Every file in there carries at
+  least one audit finding.
+
 ---
 
 ## 1. What the product is
