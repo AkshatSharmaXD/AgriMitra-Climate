@@ -107,6 +107,7 @@ class DiseaseAnalysis(Document):
     confidence: float = Field(ge=0, le=1)
     recommendation: str | None = None
     source: str
+    # gs:// reference to the submitted photo, when Cloud Storage is configured.
     image_ref: str | None = None
     is_demo: bool = False
     analyzed_at: datetime = Field(default_factory=_now)

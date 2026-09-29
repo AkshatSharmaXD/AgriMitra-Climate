@@ -45,6 +45,29 @@ class Settings(BaseSettings):
     gemini_api_key: str | None = None
     gemini_model: str = "gemini-2.5-flash"
 
+    # --- Vertex AI -----------------------------------------------------------
+    # Same Gemini models, reached through Vertex with the service account's own
+    # IAM identity instead of a shared API key. On Cloud Run that means no key to
+    # store, rotate or leak. Set use_vertex_ai=true and the project/location.
+    use_vertex_ai: bool = False
+    gcp_project: str | None = None
+    gcp_location: str = "asia-south1"
+
+    # --- Google Cloud services ----------------------------------------------
+    # Leaf-scan images. Absent -> the diagnosis is still stored, without a photo.
+    gcs_bucket: str | None = None
+    # Server-side speech, for browsers with no Web Speech API.
+    enable_cloud_speech: bool = False
+    # Static reference text (the scheme directory) in the farmer's language.
+    enable_translation: bool = False
+    # District analytics warehouse. Absent -> aggregation runs against MongoDB.
+    bigquery_dataset: str | None = None
+    # Async NDVI refresh fan-out.
+    pubsub_topic_ndvi_refresh: str | None = None
+
+    # Cache. Absent -> every lookup goes to the upstream API.
+    redis_url: str | None = None
+
     gee_service_account_json: str | None = None
     data_gov_api_key: str | None = None
 
@@ -73,7 +96,36 @@ class Settings(BaseSettings):
 
     @property
     def gemini_enabled(self) -> bool:
+        """Either auth path counts: an API key, or Vertex with a project."""
+        if self.use_vertex_ai:
+            return self.configured(self.gcp_project)
         return self.configured(self.gemini_api_key)
+
+    @property
+    def cloud_storage_enabled(self) -> bool:
+        return self.configured(self.gcs_bucket)
+
+    @property
+    def cloud_speech_enabled(self) -> bool:
+        return self.enable_cloud_speech and self.configured(self.gcp_project)
+
+    @property
+    def translation_enabled(self) -> bool:
+        return self.enable_translation and self.configured(self.gcp_project)
+
+    @property
+    def bigquery_enabled(self) -> bool:
+        return self.configured(self.bigquery_dataset) and self.configured(self.gcp_project)
+
+    @property
+    def pubsub_enabled(self) -> bool:
+        return self.configured(self.pubsub_topic_ndvi_refresh) and self.configured(
+            self.gcp_project
+        )
+
+    @property
+    def cache_enabled(self) -> bool:
+        return self.configured(self.redis_url)
 
     @property
     def earth_engine_enabled(self) -> bool:

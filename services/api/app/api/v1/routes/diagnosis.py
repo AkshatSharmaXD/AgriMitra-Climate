@@ -11,6 +11,7 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
 from app.core.config import get_settings
 from app.core.database import is_connected
+from app.integrations.storage import StorageUnavailable, store_leaf_image
 from app.models.documents import DiseaseAnalysis
 
 router = APIRouter()
@@ -54,6 +55,15 @@ async def analyze_leaf(
     except httpx.HTTPError as exc:
         raise HTTPException(503, "Diagnosis service is unavailable right now.") from exc
 
+    # Keep the photograph. Without it an officer reviewing a flagged farm cannot
+    # see what the model actually looked at, and a wrong call cannot be audited.
+    # An upload failure never fails the farmer's scan.
+    image_ref: str | None = None
+    try:
+        image_ref = await store_leaf_image(payload, image.content_type, farm_id)
+    except StorageUnavailable:
+        image_ref = None
+
     # The prediction itself needs no database. Persisting it against a farm does,
     # so a database outage costs the farmer the record, not the diagnosis.
     stored = False
@@ -66,6 +76,12 @@ async def analyze_leaf(
             confidence=float(result.get("confidence", 0.0)),
             recommendation=result.get("guidance"),
             source=result.get("source", "inference"),
+            image_ref=image_ref,
         ).insert()
 
-    return {**result, "stored": stored, "disclaimer": HEDGE}
+    return {
+        **result,
+        "stored": stored,
+        "image_stored": image_ref is not None,
+        "disclaimer": HEDGE,
+    }

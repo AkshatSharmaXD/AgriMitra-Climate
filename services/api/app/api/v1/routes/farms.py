@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from app.api.deps import require_database
 from app.domain.risk import RiskInputs, compute_risk
+from app.integrations.analytics import stream_risk_snapshot
 from app.integrations.satellite import get_satellite_data
 from app.integrations.weather import get_weather
 from app.models.documents import DiseaseAnalysis, Farm, FarmRisk, SatelliteSnapshot
@@ -89,6 +90,17 @@ async def read_farm_risk(farm_id: PydanticObjectId) -> dict:
     record = FarmRisk(farm_id=str(farm_id), is_demo=farm.is_demo, **asdict(result))
     await record.insert()
 
+    # MongoDB stays the system of record; the warehouse gets an append-only copy
+    # so district and state trends can be queried over seasons. A failure here is
+    # invisible to the farmer.
+    warehoused = await stream_risk_snapshot(
+        farm_id=str(farm_id),
+        district=farm.district,
+        state=farm.state,
+        crop=farm.crop,
+        risk=asdict(result),
+    )
+
     return {
         **asdict(result),
         "farm_id": str(farm_id),
@@ -99,5 +111,6 @@ async def read_farm_risk(farm_id: PydanticObjectId) -> dict:
             "satellite": snapshot.source if snapshot else None,
             "satellite_is_live": snapshot.is_live if snapshot else None,
             "diagnosis": diagnosis.source if diagnosis else None,
+            "warehoused": warehoused,
         },
     }

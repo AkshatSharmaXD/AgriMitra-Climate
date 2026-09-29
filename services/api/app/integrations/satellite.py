@@ -28,6 +28,7 @@ from typing import Any
 
 from app.core.config import get_settings
 from app.core.paths import DATA_DIR
+from app.integrations import cache
 
 logger = logging.getLogger(__name__)
 
@@ -147,11 +148,21 @@ def get_provider() -> SatelliteProvider:
 
 
 async def get_satellite_data(lat: float, lng: float, district: str | None) -> dict[str, Any]:
+    # An Earth Engine reduction costs seconds and quota for a value that changes
+    # at most every five days, so it is worth caching hard.
+    key = cache.geo_key("ndvi", lat, lng, district or "")
+    if (hit := await cache.get(key)) is not None:
+        return hit
+
     provider = get_provider()
     try:
-        return await provider.get_ndvi(lat, lng, district)
+        payload = await provider.get_ndvi(lat, lng, district)
     except Exception:
         if provider.is_live:
             logger.exception("Satellite: live lookup failed; falling back to seeded demo data")
-            return await SeededDemoProvider().get_ndvi(lat, lng, district)
-        raise
+            payload = await SeededDemoProvider().get_ndvi(lat, lng, district)
+        else:
+            raise
+
+    await cache.set(key, payload, cache.TTL_SATELLITE)
+    return payload

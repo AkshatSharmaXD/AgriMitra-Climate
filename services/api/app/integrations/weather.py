@@ -12,6 +12,8 @@ from typing import Any
 
 import httpx
 
+from app.integrations import cache
+
 FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
 ARCHIVE_URL = "https://archive-api.open-meteo.com/v1/archive"
 GEOCODE_URL = "https://geocoding-api.open-meteo.com/v1/search"
@@ -28,6 +30,12 @@ SEASON_WINDOWS = {
 
 
 async def get_weather(lat: float, lng: float) -> dict[str, Any]:
+    # The district view asks for one forecast per farm; neighbouring farms share
+    # a forecast, so the key is rounded to roughly a kilometre.
+    key = cache.geo_key("wx", lat, lng)
+    if (hit := await cache.get(key)) is not None:
+        return hit
+
     params = {
         "latitude": lat,
         "longitude": lng,
@@ -64,7 +72,7 @@ async def get_weather(lat: float, lng: float) -> dict[str, Any]:
         for i in range(len(times))
     ]
 
-    return {
+    payload = {
         "current": {
             "temperature_c": current["temperature_2m"],
             "humidity_pct": current["relative_humidity_2m"],
@@ -79,6 +87,8 @@ async def get_weather(lat: float, lng: float) -> dict[str, Any]:
         "degraded": False,
         "fetched_at": datetime.now(UTC).isoformat(),
     }
+    await cache.set(key, payload, cache.TTL_WEATHER)
+    return payload
 
 
 def _season_window(season: str, today: date) -> tuple[date, date]:
@@ -97,6 +107,10 @@ async def get_seasonal_rainfall_mm(lat: float, lng: float, season: str) -> dict[
     engine can mark the criterion unscored rather than guess.
     """
     start, end = _season_window(season, datetime.now(UTC).date() - timedelta(days=5))
+    key = cache.geo_key("rain", lat, lng, season)
+    if (hit := await cache.get(key)) is not None:
+        return hit
+
     params = {
         "latitude": lat,
         "longitude": lng,
@@ -114,13 +128,16 @@ async def get_seasonal_rainfall_mm(lat: float, lng: float, season: str) -> dict[
         return None
 
     total = sum(value for value in daily if value is not None)
-    return {
+    payload = {
         "total_mm": round(total, 1),
         "window_start": start.isoformat(),
         "window_end": end.isoformat(),
         "season": season,
         "source": "open-meteo-archive",
     }
+    # A closed historical window cannot change; cache it for a day.
+    await cache.set(key, payload, cache.TTL_SEASONAL_RAIN)
+    return payload
 
 
 async def geocode(query: str) -> dict[str, Any] | None:

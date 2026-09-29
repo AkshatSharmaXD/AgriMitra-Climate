@@ -12,6 +12,7 @@ from typing import Any
 from fastapi import APIRouter, Query
 
 from app.core.paths import DATA_DIR
+from app.integrations.translation import translate
 
 router = APIRouter()
 
@@ -25,6 +26,7 @@ def _load() -> dict[str, Any]:
 async def list_schemes(
     state: str | None = Query(default=None, max_length=60),
     q: str | None = Query(default=None, max_length=80),
+    language: str = Query(default="en", pattern="^(en|hi|gu|te)$"),
 ) -> dict:
     data = _load()
 
@@ -45,8 +47,23 @@ async def list_schemes(
             or needle in item.get("category", "").lower()
         ]
 
+    # A farmer who chose Hindi should not get a Hindi advisory and then an
+    # English list of the subsidies they might claim.
+    translated_language = "en"
+    if language != "en" and schemes:
+        names = await translate([item.get("name", "") for item in schemes], language)
+        descriptions = await translate(
+            [item.get("description", "") for item in schemes], language
+        )
+        if names != [item.get("name", "") for item in schemes]:
+            for item, name, description in zip(schemes, names, descriptions, strict=False):
+                item["name"] = name
+                item["description"] = description
+            translated_language = language
+
     return {
         "schemes": schemes,
+        "language": translated_language,
         "states_available": sorted(state_schemes.keys()),
         "source": "curated from public scheme portals",
         "disclaimer": (

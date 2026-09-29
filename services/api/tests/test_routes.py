@@ -208,3 +208,42 @@ class TestDatabaseDegradation:
     )
     async def test_stateless_routes_are_unaffected(self, client, path):
         assert (await client.get(path)).status_code == 200
+
+
+class TestSchemeTranslation:
+    async def test_language_field_reports_what_was_actually_returned(self, client):
+        """Asking for Hindi with Translation disabled must report `en`, not `hi`.
+
+        Claiming a translation that did not happen is the same class of dishonesty
+        as labelling demo data live.
+        """
+        response = await client.get("/api/v1/schemes?language=hi")
+        assert response.status_code == 200
+
+        body = response.json()
+        if not get_settings().translation_enabled:
+            assert body["language"] == "en"
+
+    async def test_rejects_an_unsupported_language(self, client):
+        assert (await client.get("/api/v1/schemes?language=fr")).status_code == 422
+
+
+class TestVoiceCapabilities:
+    async def test_reports_server_speech_honestly(self, client):
+        response = await client.get("/api/v1/voice/capabilities")
+        assert response.status_code == 200
+
+        body = response.json()
+        settings = get_settings()
+        assert body["server_speech_to_text"] is settings.cloud_speech_enabled
+        assert set(body["languages"]) == {"en", "hi", "gu", "te"}
+
+    async def test_synthesize_503s_when_not_configured(self, client):
+        if get_settings().cloud_speech_enabled:
+            pytest.skip("Cloud Speech is configured")
+
+        response = await client.post(
+            "/api/v1/voice/synthesize", json={"text": "Irrigate today", "language": "hi"}
+        )
+        assert response.status_code == 503
+        assert "still shown on screen" in response.json()["detail"]

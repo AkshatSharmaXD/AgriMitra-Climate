@@ -50,7 +50,15 @@ async def generate_json(
     from google import genai
     from google.genai import types
 
-    client = genai.Client(api_key=settings.gemini_api_key)
+    # Two auth paths for the same models. Vertex uses the runtime service
+    # account's IAM identity, so a Cloud Run deployment holds no API key at all;
+    # the API-key path stays for local development.
+    if settings.use_vertex_ai:
+        client = genai.Client(
+            vertexai=True, project=settings.gcp_project, location=settings.gcp_location
+        )
+    else:
+        client = genai.Client(api_key=settings.gemini_api_key)
     language_name = LANGUAGE_NAMES.get(language, "English")
 
     try:

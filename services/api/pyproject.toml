@@ -22,6 +22,17 @@ dependencies = [
     "google-genai>=1.9.0",
     "earthengine-api>=1.4.3",
     "structlog>=24.4.0",
+    "anyio>=4.6",
+    # Google Cloud clients. Each is optional at runtime — the matching feature
+    # degrades to a labelled fallback when its credentials are absent — but the
+    # import path is real, so the dependency is declared rather than assumed.
+    "google-cloud-storage>=2.18",
+    "google-cloud-speech>=2.27",
+    "google-cloud-texttospeech>=2.17",
+    "google-cloud-translate>=3.16",
+    "google-cloud-bigquery>=3.26",
+    "google-cloud-pubsub>=2.23",
+    "redis>=5.2",
 ]
 
 [project.optional-dependencies]
