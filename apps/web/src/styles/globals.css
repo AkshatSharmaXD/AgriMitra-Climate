@@ -1,0 +1,231 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================================
+   AgriMitra Climate — design tokens
+
+   Thesis: this is a field instrument, not a dashboard. It is read outdoors, in
+   direct Rajasthan sun, often on a low-end Android screen. So the light
+   appearance is the primary design (high contrast, large type, few surfaces),
+   and dark is the considered variant — not the other way round.
+
+   Three colour systems that never overlap, so one colour always means one thing
+   (`color.md › Best practices`: "Avoid using the same color to mean different
+   things."):
+
+     1. `--accent-*`   interactive only. Nothing decorative uses it.
+     2. `--risk-*`     the computed farm-risk ramp. Earth tones — canopy, dry
+                       loam, scorched ground, burnt soil — not traffic lights.
+     3. `--ndvi-*`     the Sentinel-2 NDVI ramp, used only where an actual NDVI
+                       value is being shown.
+
+   Every ratio below is computed against its own surface, not estimated.
+   ========================================================================= */
+
+:root {
+  color-scheme: light;
+
+  /* --- Surfaces: limewash and unfired clay, never pure #fff --------------- */
+  --surface:            #faf8f4;
+  --surface-raised:     #ffffff;
+  --surface-sunken:     #f1ede5;
+  --surface-inverted:   #1c1917;
+  --hairline:           #e3ddd1;
+
+  /* --- Content ----------------------------------------------------------- */
+  --content:            #1c1917;  /* 15.3:1 on --surface */
+  --content-secondary:  #57534e;  /*  7.0:1 on --surface */
+  --content-tertiary:   #78716c;  /*  4.6:1 on --surface — 14px+ only */
+  --content-inverted:   #faf8f4;
+
+  /* --- Accent: stepwell teal. Irrigation water, not "agri green" ---------- */
+  --accent:             #0f5257;  /* 8.1:1 on --surface */
+  --accent-hover:       #0b3d41;
+  --accent-soft:        #e2efef;
+  --accent-content:     #faf8f4;  /* 7.4:1 on --accent */
+
+  /* --- Risk ramp: fill vs. text are separate so small text stays legible -- */
+  --risk-low:           #2f5d2a;  /* 7.1:1 */
+  --risk-low-fill:      #4c8a42;
+  --risk-low-wash:      #eaf1e6;
+
+  --risk-medium:        #8a6914;  /* 4.7:1 — #b3891b is 3.0:1, fill only */
+  --risk-medium-fill:   #b3891b;
+  --risk-medium-wash:   #f6efdc;
+
+  --risk-high:          #c2410c;  /* 4.9:1 */
+  --risk-high-fill:     #ea580c;
+  --risk-high-wash:     #fdeae0;
+
+  --risk-critical:      #8c1d18;  /* 8.5:1 */
+  --risk-critical-fill: #b91c1c;
+  --risk-critical-wash: #fae7e6;
+
+  /* --- NDVI ramp: bare ground -> dense canopy ---------------------------- */
+  --ndvi-0:             #a8743f;
+  --ndvi-1:             #c9b072;
+  --ndvi-2:             #9fb356;
+  --ndvi-3:             #5f9440;
+  --ndvi-4:             #2e6b2c;
+
+  /* --- Provenance: every value on screen is tagged live / demo / stale ---- */
+  --provenance-live:    #0f5257;
+  --provenance-demo:    #8a6914;
+  --provenance-stale:   #78716c;
+
+  /* --- Elevation. Bigger surfaces read as thicker material. --------------- */
+  --shadow-card:  0 1px 2px rgb(28 25 23 / 0.04), 0 2px 8px rgb(28 25 23 / 0.04);
+  --shadow-sheet: 0 2px 6px rgb(28 25 23 / 0.06), 0 16px 48px rgb(28 25 23 / 0.14);
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+
+  /* --- Motion. Critically damped by default; bounce only after a gesture -- */
+  --spring-response: 0.34s;
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-quint:  cubic-bezier(0.64, 0, 0.78, 0); /* mirror of the above */
+}
+
+:root[data-theme="dark"],
+:root:not([data-theme="light"]) {
+  /* Dark is applied by the `dark` class from next-themes; see tailwind.config. */
+}
+
+.dark {
+  color-scheme: dark;
+
+  --surface:            #14120f;
+  --surface-raised:     #1f1c18;
+  --surface-sunken:     #0d0c0a;
+  --surface-inverted:   #f5f1ea;
+  --hairline:           #322d26;
+
+  --content:            #f5f1ea;  /* 16.4:1 on --surface */
+  --content-secondary:  #b8b0a4;  /*  8.6:1 */
+  --content-tertiary:   #8b8378;  /*  4.8:1 */
+  --content-inverted:   #14120f;
+
+  --accent:             #58b8bd;  /* 7.6:1 on --surface */
+  --accent-hover:       #7ccbcf;
+  --accent-soft:        #123033;
+  --accent-content:     #072528;
+
+  --risk-low:           #86c47a;
+  --risk-low-fill:      #4c8a42;
+  --risk-low-wash:      #16220f;
+
+  --risk-medium:        #dcb64a;
+  --risk-medium-fill:   #b3891b;
+  --risk-medium-wash:   #241d0c;
+
+  --risk-high:          #f08a54;
+  --risk-high-fill:     #ea580c;
+  --risk-high-wash:     #2a150c;
+
+  --risk-critical:      #f08b86;
+  --risk-critical-fill: #b91c1c;
+  --risk-critical-wash: #2b1211;
+
+  --provenance-live:    #58b8bd;
+  --provenance-demo:    #dcb64a;
+  --provenance-stale:   #8b8378;
+
+  --shadow-card:  0 1px 2px rgb(0 0 0 / 0.5), 0 2px 8px rgb(0 0 0 / 0.36);
+  --shadow-sheet: 0 2px 6px rgb(0 0 0 / 0.5), 0 16px 48px rgb(0 0 0 / 0.6);
+}
+
+@layer base {
+  html {
+    /* Spacing scales with the user's text setting, so Dynamic Type does not
+       break the layout (`typography.md › Supporting Dynamic Type`). */
+    font-size: 100%;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--surface);
+    color: var(--content);
+    font-family: var(--font-ui), ui-sans-serif, system-ui, -apple-system,
+      "Segoe UI", Roboto, "Noto Sans Devanagari", "Noto Sans Gujarati", sans-serif;
+    font-size: 1.0625rem;   /* 17px — the iOS body default */
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Tracking is size-specific: large text tightens, small text opens up.
+     A single letter-spacing value would be wrong at one end or the other. */
+  .type-display {
+    font-size: clamp(2.25rem, 7vw, 3.75rem);
+    line-height: 1.02;
+    letter-spacing: -0.028em;
+    font-weight: 620;
+  }
+  .type-title    { font-size: 1.5rem;    line-height: 1.2;  letter-spacing: -0.017em; font-weight: 600; }
+  .type-heading  { font-size: 1.1875rem; line-height: 1.3;  letter-spacing: -0.008em; font-weight: 600; }
+  .type-body     { font-size: 1.0625rem; line-height: 1.55; letter-spacing: 0; }
+  .type-callout  { font-size: 0.9375rem; line-height: 1.45; letter-spacing: 0.002em; }
+  .type-caption  { font-size: 0.8125rem; line-height: 1.4;  letter-spacing: 0.012em; }
+
+  /* Every figure that can be compared down a column is tabular. */
+  .type-numeric {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1, "ss01" 1;
+    letter-spacing: -0.01em;
+  }
+
+  :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    outline: 2.5px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection { background: var(--accent-soft); color: var(--content); }
+}
+
+@layer components {
+  /* Floating chrome only — never behind reading content
+     (`liquid-glass.md`: the material belongs to the functional layer). */
+  .material-chrome {
+    background: color-mix(in srgb, var(--surface) 72%, transparent);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid color-mix(in srgb, var(--hairline) 60%, transparent);
+  }
+
+  /* Content meeting floating chrome fades rather than meeting a 1px rule. */
+  .scroll-edge-mask {
+    mask-image: linear-gradient(to bottom, transparent 0, #000 18px);
+  }
+}
+
+/* --- Accessibility preferences are honoured, not approximated ------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* Reduced motion still gets feedback — a cross-fade, not a slide. */
+  .motion-safe-slide { transform: none !important; }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .material-chrome {
+    background: var(--surface);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --content-tertiary: #44403c;
+    --hairline: #a8a29e;
+  }
+  .material-chrome { background: var(--surface); backdrop-filter: none; }
+}

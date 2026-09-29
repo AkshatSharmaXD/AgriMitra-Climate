@@ -1,12 +1,31 @@
+# Dependencies
 node_modules/
+.pnp/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Build output
+.next/
+out/
 dist/
 build/
-.env*
-!.env.example
-uploads/
-__pycache__/
-*.pyc
-.venv/
 *.tsbuildinfo
-.vercel
+
+# Environment — never commit real credentials
+.env
+.env.local
+.env.*.local
+*-service-account*.json
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.eslintcache
+
+# Editors / OS
 .DS_Store
+.idea/
+.vscode/
