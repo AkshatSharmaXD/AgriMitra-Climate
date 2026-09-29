@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Link } from "react-router-dom"
 import { ArrowLeft, CloudRain, Sun, Wind, Droplets, MapPin, Loader2, Search } from "lucide-react"
+import { API_BASE } from "../lib/api"
+
 
 export default function WeatherPage() {
     const [loading, setLoading] = useState(false)
@@ -32,11 +34,27 @@ export default function WeatherPage() {
             setCity(`${name}, ${admin1 || country || ""}`);
 
             // 2. Weather
-            const weatherRes = await fetch(
-                `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto`
-            );
+            const weatherRes = await fetch(`${API_BASE}/api/weather?lat=${latitude}&lng=${longitude}`);
             const weatherData = await weatherRes.json();
-            setWeather(weatherData);
+            
+            // Map our backend structure back to the component's expected structure
+            setWeather({
+                current: {
+                    weather_code: weatherData.current.weatherCode || 0,
+                    temperature_2m: weatherData.current.temperature,
+                    wind_speed_10m: weatherData.current.windSpeed,
+                    relative_humidity_2m: weatherData.current.humidity,
+                    precipitation: weatherData.current.rainfall
+                },
+                daily: {
+                    time: weatherData.forecast.map((d: any) => d.date),
+                    weather_code: weatherData.forecast.map((d: any) => d.weatherCode || 0),
+                    temperature_2m_max: weatherData.forecast.map((d: any) => d.tempMax),
+                    temperature_2m_min: weatherData.forecast.map((d: any) => d.tempMin),
+                    precipitation_sum: weatherData.forecast.map((d: any) => d.precipitation)
+                },
+                degraded: weatherData.degraded
+            });
         } catch (e) {
             console.error(e);
             alert("Failed to fetch weather data.");
@@ -144,11 +162,17 @@ export default function WeatherPage() {
                                         <div className="text-blue-100 text-xs mb-1">Precip</div>
                                         <div className="font-bold flex items-center justify-center gap-1">
                                             <CloudRain className="w-3 h-3" />
-                                            0mm
+                                            {weather.current.precipitation}mm
                                         </div>
                                     </div>
                                 </div>
+                                {weather.degraded && (
+                                    <div className="mt-4 text-xs text-red-200 bg-red-900/30 p-1 rounded inline-block">
+                                        Data might be inaccurate (Service Degraded)
+                                    </div>
+                                )}
                             </CardContent>
+
                         </Card>
 
                         {/* Forecast */}

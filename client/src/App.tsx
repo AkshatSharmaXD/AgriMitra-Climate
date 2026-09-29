@@ -142,6 +142,15 @@ function HomePage() {
               {language === "en" ? "Pro" : (language === "hi" ? "प्रो" : "પ્રો")}
             </span>
           </Link>
+          {/* Farm Profile Entry */}
+          <Link to="/farm-profile" className="flex flex-col items-center gap-1 group">
+            <div className="w-14 h-14 bg-white rounded-2xl shadow-sm border border-green-200 flex items-center justify-center text-2xl group-hover:scale-105 transition-transform group-hover:shadow-md">
+              🌱
+            </div>
+            <span className="text-[10px] font-semibold text-gray-700 text-center leading-tight">
+              {language === "en" ? "My Farm" : (language === "hi" ? "मेरा खेत" : "મારું ખેતર")}
+            </span>
+          </Link>
         </div>
 
         {/* HERO: Crop Diagnosis */}
@@ -196,14 +205,14 @@ function HomePage() {
             </Card>
           </Link>
 
-          {/* Forum */}
-          <Link to="/forum" className="block col-span-1">
+          {/* District Intelligence */}
+          <Link to="/district" className="block col-span-1">
             <Card className="hover:shadow-lg transition-shadow border-green-200 hover:border-green-300 h-full">
               <CardHeader className="p-3">
                 <CardTitle className="flex flex-col items-center text-center gap-2 text-green-700">
-                  <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-xl">👥</div>
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-xl">📊</div>
                   <div>
-                    <div className="font-semibold text-xs leading-tight">{language === "en" ? "Forum" : (language === "hi" ? "मंच" : "ચર્ચા")}</div>
+                    <div className="font-semibold text-xs leading-tight">{language === "en" ? "District" : (language === "hi" ? "जिला" : "જિલ્લો")}</div>
                   </div>
                 </CardTitle>
               </CardHeader>
@@ -280,6 +289,11 @@ function HomePage() {
   )
 }
 
+import FarmProfilePage from "./pages/FarmProfilePage";
+import FarmDashboardPage from "./pages/FarmDashboardPage";
+import CropSuitabilityPage from "./pages/CropSuitabilityPage";
+import AdvisoryPage from "./pages/AdvisoryPage";
+import DistrictDashboardPage from "./pages/DistrictDashboardPage";
 import DiagnosisPage from "./pages/DiagnosisPage";
 import MarketPage from "./pages/MarketPage";
 import SchemesPage from "./pages/SchemesPage";
@@ -326,6 +340,11 @@ export default function App() {
       <div className="min-h-screen pb-4 relative animate-in fade-in duration-700">
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/farm-profile" element={<FarmProfilePage />} />
+          <Route path="/farm-dashboard/:id" element={<FarmDashboardPage />} />
+          <Route path="/crop-suitability/:id" element={<CropSuitabilityPage />} />
+          <Route path="/advisory/:id" element={<AdvisoryPage />} />
+          <Route path="/district" element={<DistrictDashboardPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/voice" element={<VoicePage />} />
           <Route path="/market" element={<MarketPage />} />

@@ -1,0 +1,12 @@
+{
+    "Alwar": { "ndvi": 0.65, "vegetationHealth": 0.72, "vegetationStatus": "Moderate", "satelliteDate": "2026-09-28" },
+    "Jaipur": { "ndvi": 0.55, "vegetationHealth": 0.60, "vegetationStatus": "Low", "satelliteDate": "2026-09-28" },
+    "Jodhpur": { "ndvi": 0.40, "vegetationHealth": 0.45, "vegetationStatus": "Very Low", "satelliteDate": "2026-09-28" },
+    "Udaipur": { "ndvi": 0.70, "vegetationHealth": 0.78, "vegetationStatus": "Good", "satelliteDate": "2026-09-28" },
+    "Bikaner": { "ndvi": 0.35, "vegetationHealth": 0.40, "vegetationStatus": "Very Low", "satelliteDate": "2026-09-28" },
+    "Ajmer": { "ndvi": 0.60, "vegetationHealth": 0.65, "vegetationStatus": "Moderate", "satelliteDate": "2026-09-28" },
+    "Kota": { "ndvi": 0.75, "vegetationHealth": 0.80, "vegetationStatus": "Good", "satelliteDate": "2026-09-28" },
+    "Bhilwara": { "ndvi": 0.62, "vegetationHealth": 0.68, "vegetationStatus": "Moderate", "satelliteDate": "2026-09-28" },
+    "Sikar": { "ndvi": 0.50, "vegetationHealth": 0.55, "vegetationStatus": "Low", "satelliteDate": "2026-09-28" },
+    "Pali": { "ndvi": 0.45, "vegetationHealth": 0.50, "vegetationStatus": "Low", "satelliteDate": "2026-09-28" }
+}

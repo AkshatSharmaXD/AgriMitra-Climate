@@ -2,9 +2,12 @@ import express from 'express';
 import axios from 'axios';
 
 const router = express.Router();
-const DATA_GOV_API_KEY = "579b464db66ec23bdd00000151bbb54b4d9e452c5523c3bce2ccc5f4";
+router.get('/', async (req, res): Promise<any> => {
+    const DATA_GOV_API_KEY = process.env.DATA_GOV_API_KEY;
+    if (!DATA_GOV_API_KEY) {
+        return res.status(503).json({ error: "Market data service is not configured (API key missing)." });
+    }
 
-router.get('/', async (req, res) => {
     const state = req.query.state as string || 'Rajasthan';
     const commodity = req.query.commodity as string || 'Wheat';
 

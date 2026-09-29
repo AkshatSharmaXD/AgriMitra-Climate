@@ -7,6 +7,10 @@ from io import BytesIO
 from transformers import pipeline
 import cv2
 import numpy as np
+import os
+from google import genai
+from google.genai import types
+import json
 
 # Configure Logging
 logging.basicConfig(
@@ -31,51 +35,38 @@ MODEL_ID = "linkanjarad/mobilenet_v2_1.0_224-plant-disease-identification"
 def auto_crop_image(pil_img: Image.Image) -> tuple[Image.Image, bool]:
     """Intelligently slices off excessive background noise around a dominant leaf using HSV color bounding and contours."""
     try:
-        # Convert PIL to specific OpenCV format
         open_cv_image = np.array(pil_img)
-        # Convert RGB to BGR 
         img = open_cv_image[:, :, ::-1].copy()
         
-        # Convert to HSV color space for easier green/plant detection
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         
-        # Define broad range of green (healthy) and yellow/brown (diseased) colors
         lower_bound = np.array([20, 20, 20])
         upper_bound = np.array([100, 255, 255])
         
-        # Threshold the HSV image to get only plant colors
         mask = cv2.inRange(hsv, lower_bound, upper_bound)
         
-        # Calculate the percentage of plant-colored pixels in the entire image
         total_pixels = open_cv_image.shape[0] * open_cv_image.shape[1]
         plant_pixels = cv2.countNonZero(mask)
         plant_ratio = plant_pixels / total_pixels
         
-        # If less than 2% of the image contains plant colors, it's likely not a plant
         if plant_ratio < 0.02:
             logging.warning(f"Rejection: Low plant pixel ratio detected ({plant_ratio:.2%})")
             return (pil_img, False)
 
-        # Find contours
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         
         if not contours:
-            return (pil_img, False) # Fallback: No plant detected, return original
+            return (pil_img, False)
 
-        # Find the largest contour (assuming it's the primary leaf)
         largest_contour = max(contours, key=cv2.contourArea)
         
-        # Ignore if the detected blob is incredibly small and likely noise
         if cv2.contourArea(largest_contour) < 500:
-            return (pil_img, False) # Ignore if the detected blob is incredibly small and likely noise
+            return (pil_img, False)
             
-        # Get bounding box coordinates padding slightly
         x, y, w, h = cv2.boundingRect(largest_contour)
         
-        # Extract the ROI (Region of Interest)
         cropped = img[max(0, y-20):y+h+20, max(0, x-20):x+w+20]
         
-        # Convert back to PIL Image
         cropped_rgb = cv2.cvtColor(cropped, cv2.COLOR_BGR2RGB)
         return (Image.fromarray(cropped_rgb), True)
         
@@ -86,10 +77,13 @@ def auto_crop_image(pil_img: Image.Image) -> tuple[Image.Image, bool]:
 @app.on_event("startup")
 async def startup_event():
     global CLASSIFIER
-    # QUICK DEMO FIX: Skipping heavy model loading
-    logging.info("Skipping Hugging Face model load for quick demo/mock mode.")
-    CLASSIFIER = "MOCKED"
-    logging.info("✅ Mock Model loaded successfully!")
+    try:
+        logging.info(f"Loading Hugging Face model: {MODEL_ID}")
+        CLASSIFIER = pipeline("image-classification", model=MODEL_ID)
+        logging.info("✅ Model loaded successfully!")
+    except Exception as e:
+        logging.error(f"Failed to load model: {e}")
+        CLASSIFIER = None
 
 @app.get("/")
 async def read_root():
@@ -99,43 +93,101 @@ async def read_root():
 async def health():
     return {"status": "ok", "model_loaded": CLASSIFIER is not None}
 
+async def analyze_with_gemini(pil_img: Image.Image) -> dict:
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key or api_key == "your_gemini_api_key" or api_key == "your_gemini_api_key_here":
+        return {
+            "class": "Unknown",
+            "confidence": 0.0,
+            "recommendation": "Unable to verify. Gemini API key missing.",
+            "source": "unavailable"
+        }
+    
+    try:
+        client = genai.Client(api_key=api_key)
+        
+        prompt = "Identify the plant disease in this image. Respond with a JSON object containing 'class' (string), 'confidence' (number 0-1), and 'recommendation' (string for treatment)."
+        
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=[prompt, pil_img],
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+            )
+        )
+        
+        data = json.loads(response.text)
+        return {
+            "class": data.get("class", "Unknown"),
+            "confidence": float(data.get("confidence", 0.0)),
+            "recommendation": data.get("recommendation", "Consult an expert."),
+            "source": "gemini-vision"
+        }
+    except Exception as e:
+        logging.error(f"Gemini fallback failed: {e}")
+        return {
+            "class": "Error",
+            "confidence": 0.0,
+            "recommendation": "Gemini fallback failed.",
+            "source": "unavailable"
+        }
+
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
-    # QUICK DEMO FIX: Returning instantaneous mock data
-    logging.info(f"Processing mock image request for Agrimitra: {file.filename}")
-    
-    import random
-    mock_diseases = [
-        "Tomato___Early_blight", 
-        "Apple___Apple_scab", 
-        "Corn_(maize)___Common_rust_", 
-        "healthy"
-    ]
-    
-    predicted_label = random.choice(mock_diseases)
-    confidence = random.uniform(0.85, 0.99)
-    
-    logging.info(f"Mock Prediction: {predicted_label} ({confidence:.2f})")
+    try:
+        contents = await file.read()
+        pil_img = Image.open(BytesIO(contents)).convert("RGB")
+        
+        cropped_img, is_plant = auto_crop_image(pil_img)
+        
+        if not is_plant:
+            return {
+                "class": "Not a plant",
+                "confidence": 1.0,
+                "recommendation": "Please upload a clear image of a plant leaf.",
+                "source": "unavailable"
+            }
 
-    # Recommendations Map
-    recommendations = {
-        "healthy": "Your crop looks healthy! Keep up the good work.",
-        "Early_blight": "Apply fungicides like Mancozeb or Chlorothalonil.",
-        "Apple_scab": "Apply fungicides and remove fallen leaves.",
-        "Common_rust_": "Apply fungicides early and plant resistant varieties."
-    }
-    
-    rec_text = "Consult an expert for detailed advice."
-    for key, value in recommendations.items():
-        if key in predicted_label:
-            rec_text = value
-            break
-
-    return {
-        "class": predicted_label.replace("_", " "),
-        "confidence": float(confidence),
-        "recommendation": rec_text
-    }
+        if CLASSIFIER is not None:
+            predictions = CLASSIFIER(cropped_img)
+            top_prediction = predictions[0]
+            confidence = top_prediction["score"]
+            predicted_label = top_prediction["label"]
+            
+            if confidence >= 0.70:
+                recommendations = {
+                    "healthy": "Your crop looks healthy! Keep up the good work.",
+                    "Early_blight": "Apply fungicides like Mancozeb or Chlorothalonil.",
+                    "Apple_scab": "Apply fungicides and remove fallen leaves.",
+                    "Common_rust_": "Apply fungicides early and plant resistant varieties.",
+                    "default": "Consult an expert for detailed advice."
+                }
+                
+                rec_text = recommendations.get("default")
+                for key, value in recommendations.items():
+                    if key in predicted_label:
+                        rec_text = value
+                        break
+                        
+                return {
+                    "class": predicted_label.replace("_", " "),
+                    "confidence": float(confidence),
+                    "recommendation": rec_text,
+                    "source": "mobilenet-v2"
+                }
+        
+        # Fallback to Gemini
+        gemini_result = await analyze_with_gemini(cropped_img)
+        return gemini_result
+        
+    except Exception as e:
+        logging.error(f"Prediction error: {e}")
+        return {
+            "class": "Error",
+            "confidence": 0.0,
+            "recommendation": f"An error occurred: {str(e)}",
+            "source": "unavailable"
+        }
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

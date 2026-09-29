@@ -21,6 +21,16 @@ app.use(express.json());
 connectDB();
 
 import forumRoutes from './routes/forum.routes';
+import farmRoutes from './routes/farm.routes';
+import recommendationsRoutes from './routes/recommendations.routes';
+import advisoryRoutes from './routes/advisory.routes';
+import satelliteRoutes from './routes/satellite.routes';
+import districtRoutes from './routes/district.routes';
+
+import { initSatelliteService } from './services/satellite.service';
+
+
+
 
 // Routes
 app.use('/api/diagnose', diagnoseRoutes);
@@ -29,6 +39,18 @@ app.use('/api/schemes', schemesRoutes);
 app.use('/api/weather', weatherRoutes);
 app.use('/api/voice', voiceRoutes);
 app.use('/api/forum', forumRoutes);
+app.use('/api/farms', farmRoutes);
+app.use('/api/recommendations', recommendationsRoutes);
+app.use('/api/advisory', advisoryRoutes);
+app.use('/api/satellite', satelliteRoutes);
+app.use('/api/district', districtRoutes);
+
+
+// Initialize Services
+initSatelliteService();
+
+
+
 
 app.get('/', (req, res) => {
     res.send('Agri Mitra API is running');

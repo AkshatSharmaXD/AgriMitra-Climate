@@ -1,0 +1,142 @@
+[
+  {
+    "crop": "Wheat",
+    "season": ["Rabi"],
+    "soil": ["Loamy", "Clay Loam", "Sandy Loam"],
+    "waterRequirement": "Moderate",
+    "temperatureRange": {
+      "min": 10,
+      "max": 25
+    },
+    "rainfallRequirement": {
+      "min": 400,
+      "max": 1000
+    }
+  },
+  {
+    "crop": "Mustard",
+    "season": ["Rabi"],
+    "soil": ["Loamy", "Sandy Loam", "Clay Loam"],
+    "waterRequirement": "Low",
+    "temperatureRange": {
+      "min": 10,
+      "max": 25
+    },
+    "rainfallRequirement": {
+      "min": 300,
+      "max": 500
+    }
+  },
+  {
+    "crop": "Chickpea",
+    "season": ["Rabi"],
+    "soil": ["Loamy", "Sandy Loam"],
+    "waterRequirement": "Low",
+    "temperatureRange": {
+      "min": 15,
+      "max": 30
+    },
+    "rainfallRequirement": {
+      "min": 300,
+      "max": 500
+    }
+  },
+  {
+    "crop": "Barley",
+    "season": ["Rabi"],
+    "soil": ["Sandy Loam", "Loamy"],
+    "waterRequirement": "Low",
+    "temperatureRange": {
+      "min": 12,
+      "max": 25
+    },
+    "rainfallRequirement": {
+      "min": 200,
+      "max": 500
+    }
+  },
+  {
+    "crop": "Millet",
+    "season": ["Kharif", "Zaid"],
+    "soil": ["Sandy", "Sandy Loam", "Loamy"],
+    "waterRequirement": "Low",
+    "temperatureRange": {
+      "min": 25,
+      "max": 35
+    },
+    "rainfallRequirement": {
+      "min": 200,
+      "max": 600
+    }
+  },
+  {
+    "crop": "Maize",
+    "season": ["Kharif", "Rabi"],
+    "soil": ["Loamy", "Clay Loam", "Sandy Loam"],
+    "waterRequirement": "Moderate",
+    "temperatureRange": {
+      "min": 21,
+      "max": 30
+    },
+    "rainfallRequirement": {
+      "min": 500,
+      "max": 1000
+    }
+  },
+  {
+    "crop": "Rice",
+    "season": ["Kharif"],
+    "soil": ["Clay", "Clay Loam", "Loamy"],
+    "waterRequirement": "High",
+    "temperatureRange": {
+      "min": 22,
+      "max": 32
+    },
+    "rainfallRequirement": {
+      "min": 1000,
+      "max": 2500
+    }
+  },
+  {
+    "crop": "Cotton",
+    "season": ["Kharif"],
+    "soil": ["Clay", "Clay Loam", "Loamy"],
+    "waterRequirement": "Moderate",
+    "temperatureRange": {
+      "min": 21,
+      "max": 35
+    },
+    "rainfallRequirement": {
+      "min": 500,
+      "max": 1000
+    }
+  },
+  {
+    "crop": "Groundnut",
+    "season": ["Kharif", "Rabi"],
+    "soil": ["Sandy Loam", "Loamy"],
+    "waterRequirement": "Moderate",
+    "temperatureRange": {
+      "min": 25,
+      "max": 30
+    },
+    "rainfallRequirement": {
+      "min": 500,
+      "max": 1000
+    }
+  },
+  {
+    "crop": "Sorghum",
+    "season": ["Kharif", "Rabi"],
+    "soil": ["Clay Loam", "Loamy", "Sandy Loam"],
+    "waterRequirement": "Low",
+    "temperatureRange": {
+      "min": 26,
+      "max": 33
+    },
+    "rainfallRequirement": {
+      "min": 400,
+      "max": 1000
+    }
+  }
+]
