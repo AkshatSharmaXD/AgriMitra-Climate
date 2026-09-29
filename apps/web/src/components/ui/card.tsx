@@ -8,11 +8,14 @@ export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElemen
   return (
     <section
       className={cn(
-        "rounded-lg border border-hairline bg-surface-raised p-5 shadow-card",
+        "relative overflow-hidden rounded-2xl border border-hairline bg-surface-raised/80 p-6 shadow-card backdrop-blur-xl transition-all duration-300 ease-out-quint hover:-translate-y-1 hover:shadow-sheet group",
         className,
       )}
       {...props}
-    />
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none" />
+      {props.children}
+    </section>
   );
 }
 

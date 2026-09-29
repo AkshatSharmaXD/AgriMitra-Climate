@@ -24,7 +24,9 @@ export function PageHeader({
         </Link>
       ) : null}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="type-title text-content">{title}</h1>
+        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-accent via-accent-hover to-risk-low-fill pb-1">
+          {title}
+        </h1>
         {provenance}
       </div>
       {description ? (

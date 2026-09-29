@@ -87,18 +87,21 @@ export default function FarmDashboardPage() {
   const f = farm.data!;
 
   return (
-    <div className="space-y-5">
-      <PageHeader
-        title={`${f.crop} · ${f.area_acres} acres`}
-        provenance={f.is_demo ? <ProvenanceBadge provenance="demo" /> : undefined}
-      />
+    <div className="space-y-8 animate-fade-in pb-12">
+      <div className="space-y-2">
+        <PageHeader
+          title={`${f.crop} · ${f.area_acres} acres`}
+          provenance={f.is_demo ? <ProvenanceBadge provenance="demo" /> : undefined}
+        />
+        <p className="flex items-center gap-2 type-callout text-content-secondary font-medium tracking-wide">
+          <MapPin aria-hidden className="size-4 text-accent" />
+          {f.district}, {f.state} <span className="opacity-50">•</span> {f.soil.type} soil <span className="opacity-50">•</span> {f.irrigation}
+        </p>
+      </div>
 
-      <p className="-mt-3 flex items-center gap-1.5 type-callout text-content-secondary">
-        <MapPin aria-hidden className="size-4" />
-        {f.district}, {f.state} · {f.soil.type} soil · {f.irrigation}
-      </p>
-
-      {/* --- The headline: risk, and the working behind it -------------------- */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {/* --- The headline: risk, and the working behind it -------------------- */}
+        <div className="md:col-span-2 xl:col-span-3">
       <Card>
         {risk.isPending ? (
           <Skeleton className="h-56 w-full" />
@@ -160,6 +163,7 @@ export default function FarmDashboardPage() {
           </>
         )}
       </Card>
+      </div>
 
       {/* --- Weather. Degraded shows an error, never zeros (audit B5) --------- */}
       <Card>
@@ -256,18 +260,19 @@ export default function FarmDashboardPage() {
           </div>
         )}
       </Card>
+      </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Button asChild size="lg" block>
+      <div className="grid gap-4 sm:grid-cols-2 pt-6 border-t border-hairline/50">
+        <Button asChild size="lg" className="h-16 text-lg rounded-2xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all bg-gradient-to-r from-accent to-accent-hover" block>
           <Link href={`/advisory?farm=${farmId}`}>
-            <Sprout aria-hidden className="size-5" />
-            Get AI advisory
+            <Sprout aria-hidden className="size-6 mr-2" />
+            Get AI Advisory
           </Link>
         </Button>
-        <Button asChild size="lg" variant="secondary" block>
+        <Button asChild size="lg" variant="secondary" className="h-16 text-lg rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all border-accent/20 bg-white/50 backdrop-blur-md" block>
           <Link href={`/crops?farm=${farmId}`}>
-            <Droplets aria-hidden className="size-5" />
-            Crop suitability
+            <Droplets aria-hidden className="size-6 mr-2 text-accent" />
+            <span className="text-content">Crop Suitability</span>
           </Link>
         </Button>
       </div>

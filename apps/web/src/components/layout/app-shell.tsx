@@ -31,15 +31,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-dvh">
-      <main id="main" className="mx-auto w-full max-w-2xl px-4 pb-28 pt-4 lg:max-w-5xl">
-        {children}
+      <main id="main" className="w-full px-4 md:px-8 pb-32 pt-6 min-h-dvh bg-gradient-to-br from-surface to-surface-sunken transition-colors duration-500">
+        <div className="max-w-screen-2xl mx-auto w-full">
+          {children}
+        </div>
       </main>
 
       <nav
         aria-label="Primary"
-        className="material-chrome fixed inset-x-0 bottom-0 z-40 border-t border-hairline pb-[env(safe-area-inset-bottom)]"
+        className="material-chrome fixed inset-x-0 bottom-0 z-40 border-t border-white/10 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_24px_rgba(0,0,0,0.05)]"
       >
-        <ul className="mx-auto flex max-w-2xl items-stretch justify-around px-2">
+        <ul className="mx-auto flex max-w-screen-2xl items-stretch justify-around px-4 md:px-8">
           {TABS.map(({ href, label, Icon }) => {
             const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
             return (

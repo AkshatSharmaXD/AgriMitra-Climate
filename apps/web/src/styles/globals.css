@@ -26,24 +26,24 @@
 :root {
   color-scheme: light;
 
-  /* --- Surfaces: limewash and unfired clay, never pure #fff --------------- */
-  --surface:            #faf8f4;
+  /* --- Surfaces: vibrant morning farm feel -------------------------------- */
+  --surface:            #f5f7f2;
   --surface-raised:     #ffffff;
-  --surface-sunken:     #f1ede5;
-  --surface-inverted:   #1c1917;
-  --hairline:           #e3ddd1;
+  --surface-sunken:     #e9efe5;
+  --surface-inverted:   #122013;
+  --hairline:           #d3e0d0;
 
   /* --- Content ----------------------------------------------------------- */
-  --content:            #1c1917;  /* 15.3:1 on --surface */
-  --content-secondary:  #57534e;  /*  7.0:1 on --surface */
-  --content-tertiary:   #78716c;  /*  4.6:1 on --surface — 14px+ only */
-  --content-inverted:   #faf8f4;
+  --content:            #1a2319;
+  --content-secondary:  #4a5c47;
+  --content-tertiary:   #6b7d68;
+  --content-inverted:   #f5f7f2;
 
-  /* --- Accent: stepwell teal. Irrigation water, not "agri green" ---------- */
-  --accent:             #0f5257;  /* 8.1:1 on --surface */
-  --accent-hover:       #0b3d41;
-  --accent-soft:        #e2efef;
-  --accent-content:     #faf8f4;  /* 7.4:1 on --accent */
+  /* --- Accent: vibrant teal for interactive elements ---------------------- */
+  --accent:             #0f766e;
+  --accent-hover:       #0d6159;
+  --accent-soft:        #ccfbf1;
+  --accent-content:     #ffffff;
 
   /* --- Risk ramp: fill vs. text are separate so small text stays legible -- */
   --risk-low:           #2f5d2a;  /* 7.1:1 */
@@ -94,21 +94,21 @@
 .dark {
   color-scheme: dark;
 
-  --surface:            #14120f;
-  --surface-raised:     #1f1c18;
-  --surface-sunken:     #0d0c0a;
-  --surface-inverted:   #f5f1ea;
-  --hairline:           #322d26;
+  --surface:            #0e140f;
+  --surface-raised:     #172018;
+  --surface-sunken:     #080b09;
+  --surface-inverted:   #f5f7f2;
+  --hairline:           #243326;
 
-  --content:            #f5f1ea;  /* 16.4:1 on --surface */
-  --content-secondary:  #b8b0a4;  /*  8.6:1 */
-  --content-tertiary:   #8b8378;  /*  4.8:1 */
-  --content-inverted:   #14120f;
+  --content:            #e8f3e5;
+  --content-secondary:  #a1b59d;
+  --content-tertiary:   #788a75;
+  --content-inverted:   #0e140f;
 
-  --accent:             #58b8bd;  /* 7.6:1 on --surface */
-  --accent-hover:       #7ccbcf;
-  --accent-soft:        #123033;
-  --accent-content:     #072528;
+  --accent:             #2dd4bf;
+  --accent-hover:       #5eead4;
+  --accent-soft:        #113b35;
+  --accent-content:     #022c22;
 
   --risk-low:           #86c47a;
   --risk-low-fill:      #4c8a42;

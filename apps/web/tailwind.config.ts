@@ -70,6 +70,15 @@ const config: Config = {
       // 44px is the minimum comfortable touch target (`accessibility.md`).
       minHeight: { tap: "44px" },
       minWidth: { tap: "44px" },
+      keyframes: {
+        "fade-in": {
+          "0%": { opacity: "0", transform: "translateY(10px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+      },
+      animation: {
+        "fade-in": "fade-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards",
+      },
     },
   },
   plugins: [],

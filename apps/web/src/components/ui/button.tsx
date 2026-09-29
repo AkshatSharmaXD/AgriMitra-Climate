@@ -8,18 +8,18 @@ import { cn } from "@/lib/utils";
 
 const button = cva(
   [
-    "inline-flex items-center justify-center gap-2 rounded-md font-medium",
-    "min-h-tap select-none whitespace-nowrap",
+    "inline-flex items-center justify-center gap-2 rounded-xl font-medium",
+    "min-h-tap select-none whitespace-nowrap relative overflow-hidden",
     // Feedback lands on pointer-down, not on click.
-    "transition-[transform,background-color,color,border-color] duration-100 ease-out-quint",
-    "active:scale-[0.98]",
+    "transition-all duration-200 ease-out-quint",
+    "active:scale-[0.97]",
     "disabled:pointer-events-none disabled:opacity-45",
   ],
   {
     variants: {
       variant: {
-        primary: "bg-accent text-accent-content hover:bg-accent-hover",
-        secondary: "bg-surface-raised text-content border border-hairline hover:bg-surface-sunken",
+        primary: "bg-gradient-to-r from-accent to-accent-hover text-accent-content shadow-md shadow-accent/20 hover:shadow-lg hover:-translate-y-0.5 before:absolute before:inset-0 before:bg-white/10 before:opacity-0 hover:before:opacity-100 before:transition-opacity",
+        secondary: "bg-surface-raised/80 backdrop-blur-md text-content border border-hairline hover:bg-surface-sunken hover:shadow-sm hover:-translate-y-0.5",
         ghost: "text-content-secondary hover:bg-surface-sunken hover:text-content",
         quiet: "text-accent hover:bg-accent-soft",
       },
