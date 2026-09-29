@@ -88,7 +88,9 @@ async def seed() -> None:
     client = AsyncIOMotorClient(settings.mongodb_uri, serverSelectionTimeoutMS=5000)
     await init_beanie(database=client[settings.mongodb_db], document_models=DOCUMENT_MODELS)
 
-    print(f"Seeding {settings.mongodb_db} at {settings.mongodb_uri}")
+    # Never print the raw URI: it carries the cluster password, and this
+    # output lands in terminal scrollback and CI logs.
+    print(f"Seeding {settings.mongodb_db} at {_redact(settings.mongodb_uri)}")
     print("Clearing previous demo data...")
     await clear_demo_data()
 
