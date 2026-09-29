@@ -1,16 +1,18 @@
-from fastapi import FastAPI, File, UploadFile
-from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
+import json
 import logging
-from PIL import Image
 from io import BytesIO
-from transformers import pipeline
+
 import cv2
 import numpy as np
-import os
+import uvicorn
+from fastapi import FastAPI, File, HTTPException, UploadFile, status
+from fastapi.middleware.cors import CORSMiddleware
 from google import genai
 from google.genai import types
-import json
+from PIL import Image
+from transformers import pipeline
+
+from .core.config import settings
 
 # Configure Logging
 logging.basicConfig(
@@ -20,10 +22,10 @@ logging.basicConfig(
 
 app = FastAPI()
 
-# Enable CORS
+# Enable CORS with restricted origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -31,6 +33,9 @@ app.add_middleware(
 
 CLASSIFIER = None
 MODEL_ID = "linkanjarad/mobilenet_v2_1.0_224-plant-disease-identification"
+
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/webp"}
 
 def auto_crop_image(pil_img: Image.Image) -> tuple[Image.Image, bool]:
     """Intelligently slices off excessive background noise around a dominant leaf using HSV color bounding and contours."""
@@ -85,28 +90,23 @@ async def startup_event():
         logging.error(f"Failed to load model: {e}")
         CLASSIFIER = None
 
-@app.get("/")
-async def read_root():
-    return {"message": "Plant Disease Detection API (Hugging Face MobileNetV2)"}
-
 @app.get("/health")
 async def health():
     return {"status": "ok", "model_loaded": CLASSIFIER is not None}
 
 async def analyze_with_gemini(pil_img: Image.Image) -> dict:
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key or api_key == "your_gemini_api_key" or api_key == "your_gemini_api_key_here":
+    if not settings.gemini_api_key or settings.gemini_api_key in ("your_gemini_api_key", "your_gemini_api_key_here"):
         return {
-            "class": "Unknown",
+            "label": "Unknown",
             "confidence": 0.0,
-            "recommendation": "Unable to verify. Gemini API key missing.",
+            "guidance": "Unable to verify. Gemini API key missing.",
             "source": "unavailable"
         }
     
     try:
-        client = genai.Client(api_key=api_key)
+        client = genai.Client(api_key=settings.gemini_api_key)
         
-        prompt = "Identify the plant disease in this image. Respond with a JSON object containing 'class' (string), 'confidence' (number 0-1), and 'recommendation' (string for treatment)."
+        prompt = "Identify the plant disease in this image. Respond with a JSON object containing 'label' (string), 'confidence' (number 0-1), and 'guidance' (string for treatment)."
         
         response = client.models.generate_content(
             model="gemini-2.5-flash",
@@ -118,33 +118,45 @@ async def analyze_with_gemini(pil_img: Image.Image) -> dict:
         
         data = json.loads(response.text)
         return {
-            "class": data.get("class", "Unknown"),
+            "label": data.get("label", "Unknown"),
             "confidence": float(data.get("confidence", 0.0)),
-            "recommendation": data.get("recommendation", "Consult an expert."),
+            "guidance": data.get("guidance", "Consult an expert."),
             "source": "gemini-vision"
         }
     except Exception as e:
         logging.error(f"Gemini fallback failed: {e}")
         return {
-            "class": "Error",
+            "label": "Error",
             "confidence": 0.0,
-            "recommendation": "Gemini fallback failed.",
+            "guidance": "Gemini fallback failed.",
             "source": "unavailable"
         }
 
-@app.post("/predict")
+@app.post("/v1/predict")
 async def predict(file: UploadFile = File(...)):
+    if file.content_type not in ALLOWED_MIME_TYPES:
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail=f"Unsupported file type: {file.content_type}. Allowed types: {', '.join(ALLOWED_MIME_TYPES)}"
+        )
+        
+    contents = await file.read()
+    if len(contents) > MAX_FILE_SIZE:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=f"File too large. Maximum size is {MAX_FILE_SIZE / (1024 * 1024)} MB."
+        )
+
     try:
-        contents = await file.read()
         pil_img = Image.open(BytesIO(contents)).convert("RGB")
         
         cropped_img, is_plant = auto_crop_image(pil_img)
         
         if not is_plant:
             return {
-                "class": "Not a plant",
-                "confidence": 1.0,
-                "recommendation": "Please upload a clear image of a plant leaf.",
+                "label": "not_a_plant",
+                "confidence": None,
+                "guidance": "Please upload a clear image of a plant leaf.",
                 "source": "unavailable"
             }
 
@@ -170,9 +182,9 @@ async def predict(file: UploadFile = File(...)):
                         break
                         
                 return {
-                    "class": predicted_label.replace("_", " "),
+                    "label": predicted_label.replace("_", " "),
                     "confidence": float(confidence),
-                    "recommendation": rec_text,
+                    "guidance": rec_text,
                     "source": "mobilenet-v2"
                 }
         
@@ -183,9 +195,9 @@ async def predict(file: UploadFile = File(...)):
     except Exception as e:
         logging.error(f"Prediction error: {e}")
         return {
-            "class": "Error",
+            "label": "Error",
             "confidence": 0.0,
-            "recommendation": f"An error occurred: {str(e)}",
+            "guidance": f"An error occurred: {e!s}",
             "source": "unavailable"
         }
 
