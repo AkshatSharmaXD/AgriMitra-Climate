@@ -4,6 +4,7 @@ import pytest
 
 from app.core.config import get_settings
 from app.integrations import satellite as satellite_module
+from app.integrations.weather import _map_nominatim_address
 
 
 class TestHealth:
@@ -253,3 +254,34 @@ class TestVoiceCapabilities:
         )
         assert response.status_code == 503
         assert "still shown on screen" in response.json()["detail"]
+
+
+class TestNominatimAddressMapping:
+    """Pins the reverse-geocoding fallback's field precedence without hitting the network."""
+
+    def test_prefers_state_district(self):
+        address = {
+            "city_district": "Bengaluru East City Corporation",
+            "city": "Bengaluru",
+            "county": "Bangalore East",
+            "state_district": "Bengaluru Urban",
+            "state": "Karnataka",
+            "country": "India",
+        }
+        assert _map_nominatim_address(address) == ("Bengaluru Urban", "Karnataka")
+
+    def test_falls_back_to_county_then_city_district_then_city(self):
+        assert _map_nominatim_address({"county": "Alwar", "state": "Rajasthan"}) == (
+            "Alwar",
+            "Rajasthan",
+        )
+        assert _map_nominatim_address(
+            {"city_district": "South Delhi", "state": "Delhi"}
+        ) == ("South Delhi", "Delhi")
+        assert _map_nominatim_address({"city": "Jaipur", "state": "Rajasthan"}) == (
+            "Jaipur",
+            "Rajasthan",
+        )
+
+    def test_returns_none_none_when_nothing_usable(self):
+        assert _map_nominatim_address({"country": "India"}) == (None, None)

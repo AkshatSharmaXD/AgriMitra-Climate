@@ -141,6 +141,27 @@ async def get_seasonal_rainfall_mm(lat: float, lng: float, season: str) -> dict[
 
 
 GOOGLE_GEOCODE_URL = "https://maps.googleapis.com/maps/api/geocode/json"
+NOMINATIM_REVERSE_URL = "https://nominatim.openstreetmap.org/reverse"
+# Nominatim requires an identifying User-Agent and rejects requests without one.
+NOMINATIM_USER_AGENT = "AgriMitra/2.0 (climate-smart agriculture)"
+
+
+def _map_nominatim_address(address: dict[str, Any]) -> tuple[str | None, str | None]:
+    """Map a Nominatim ``address`` object to (district, state) for India.
+
+    India's district-equivalent field varies by state and by how OSM has mapped
+    the area, so we try the closest matches in order rather than trusting one key.
+    """
+    district = (
+        address.get("state_district")
+        or address.get("county")
+        or address.get("city_district")
+        or address.get("city")
+        or address.get("town")
+        or address.get("village")
+    )
+    state = address.get("state")
+    return district, state
 
 
 async def reverse_geocode(lat: float, lng: float) -> dict[str, Any] | None:
@@ -152,8 +173,11 @@ async def reverse_geocode(lat: float, lng: float) -> dict[str, Any] | None:
 
     Google Geocoding is used when a key is configured, because it resolves Indian
     administrative levels (``administrative_area_level_3`` is the district) far
-    more reliably than the open alternatives. Falls back to Open-Meteo's reverse
-    lookup, and finally returns None so the fields stay manually editable.
+    more reliably than the open alternatives. Falls back to Nominatim (OpenStreetMap),
+    and finally returns None so the fields stay manually editable.
+
+    Reverse geocoding data (c) OpenStreetMap contributors, available under the
+    Open Database License.
     """
     from app.core.config import get_settings
 
@@ -201,28 +225,43 @@ async def reverse_geocode(lat: float, lng: float) -> dict[str, Any] | None:
         except (httpx.HTTPError, ValueError, KeyError):
             pass  # fall through to the open provider
 
+    # Cache aggressively: district boundaries never move, and Nominatim's usage
+    # policy caps unpaid use at 1 request/second.
+    key = cache.geo_key("revgeo", lat, lng)
+    if (hit := await cache.get(key)) is not None:
+        return hit
+
     try:
         async with httpx.AsyncClient(timeout=TIMEOUT) as client:
             response = await client.get(
-                "https://geocoding-api.open-meteo.com/v1/search",
-                params={"latitude": lat, "longitude": lng, "count": 1, "format": "json"},
+                NOMINATIM_REVERSE_URL,
+                params={
+                    "lat": lat,
+                    "lon": lng,
+                    "format": "json",
+                    "zoom": 10,
+                    "addressdetails": 1,
+                },
+                headers={"User-Agent": NOMINATIM_USER_AGENT},
             )
             response.raise_for_status()
-            results = response.json().get("results") or []
-    except (httpx.HTTPError, ValueError):
+            address = response.json().get("address") or {}
+    except (httpx.HTTPError, ValueError, KeyError):
         return None
 
-    if not results:
+    district, state = _map_nominatim_address(address)
+    if district is None and state is None:
         return None
 
-    top = results[0]
-    return {
-        "district": top.get("admin2") or top.get("name"),
-        "state": top.get("admin1"),
+    payload = {
+        "district": district,
+        "state": state,
         "lat": lat,
         "lng": lng,
-        "source": "open-meteo-geocoding",
+        "source": "openstreetmap-nominatim",
     }
+    await cache.set(key, payload, cache.TTL_REVERSE_GEOCODE)
+    return payload
 
 
 async def geocode(query: str) -> dict[str, Any] | None:

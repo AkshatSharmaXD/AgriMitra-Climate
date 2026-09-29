@@ -30,6 +30,7 @@ _unavailable = False
 TTL_WEATHER = 900  # 15 minutes — forecasts update hourly at best
 TTL_SATELLITE = 21_600  # 6 hours — Sentinel-2 revisits every ~5 days
 TTL_SEASONAL_RAIN = 86_400  # 24 hours — a closed historical window
+TTL_REVERSE_GEOCODE = 30 * 86_400  # 30 days — a district boundary does not move
 
 
 async def _connection():
