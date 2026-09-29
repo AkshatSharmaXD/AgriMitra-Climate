@@ -20,6 +20,50 @@ export class ApiError extends Error {
   }
 }
 
+/** Shape of a single FastAPI/pydantic validation error entry (422 responses). */
+interface ValidationErrorEntry {
+  loc?: Array<string | number>;
+  msg?: string;
+}
+
+interface ApiErrorBody {
+  detail?: string | ValidationErrorEntry[];
+  error?: string;
+}
+
+/**
+ * FastAPI's `detail` field is a plain string for HTTPException, but an array of
+ * validation-error objects for 422s — assigning that array straight to a string
+ * produces "[object Object]" instead of something a farmer can act on. This
+ * normalises both shapes (and anything malformed) into one readable sentence.
+ */
+export function formatApiError(body: unknown, fallback: string): string {
+  if (body === null || typeof body !== "object") return fallback;
+  const { detail, error } = body as ApiErrorBody;
+
+  if (typeof detail === "string") return detail;
+
+  if (Array.isArray(detail)) {
+    const parts = detail
+      .map((entry) => {
+        if (entry === null || typeof entry !== "object") return null;
+        const { loc, msg } = entry;
+        // The last string segment of `loc` is the offending field name;
+        // leading segments are just "body"/"query"/etc.
+        const fieldSegments = Array.isArray(loc) ? loc.filter((seg): seg is string => typeof seg === "string") : [];
+        const field = fieldSegments.length > 0 ? fieldSegments[fieldSegments.length - 1] : undefined;
+        if (typeof msg !== "string") return field ?? null;
+        return field ? `${field}: ${msg}` : msg;
+      })
+      .filter((part): part is string => Boolean(part));
+    if (parts.length > 0) return parts.join("; ");
+  }
+
+  if (typeof error === "string") return error;
+
+  return fallback;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}/api/v1${path}`, {
     ...init,
@@ -32,8 +76,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (!response.ok) {
     let message = `Request failed (${response.status})`;
     try {
-      const body = (await response.json()) as { detail?: string; error?: string };
-      message = body.detail ?? body.error ?? message;
+      const body: unknown = await response.json();
+      message = formatApiError(body, message);
     } catch {
       /* non-JSON error body — keep the status message */
     }
@@ -217,6 +261,16 @@ export const api = {
     request<Satellite>(
       `/satellite?lat=${lat}&lng=${lng}${district ? `&district=${encodeURIComponent(district)}` : ""}`,
     ),
+
+  createFarmer: (body: { name: string; phone: string; language: Language }) =>
+    request<{
+      _id: string;
+      name: string;
+      phone: string;
+      language: Language;
+      is_demo: boolean;
+      created_at: string;
+    }>("/farmers", { method: "POST", body: JSON.stringify(body) }),
 
   getFarm: (id: string) => request<Farm>(`/farms/${id}`),
 

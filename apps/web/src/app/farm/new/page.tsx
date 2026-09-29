@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field, Input, Segmented } from "@/components/ui/field";
 import { ErrorState } from "@/components/ui/states";
-import { API_BASE, type Language, type Season } from "@/lib/api";
+import { type Language, type Season } from "@/lib/api";
 import { api } from "@/lib/api";
 import { writeActiveFarmId } from "@/lib/active-farm";
 
@@ -41,6 +41,11 @@ const STEPS = ["You", "Location", "Crop", "Soil", "Water"] as const;
 
 /** Indian mobile, with or without +91 — mirrors the Pydantic pattern on the server. */
 const PHONE = /^(\+91)?[6-9]\d{9}$/;
+
+/** Farmers type numbers with spaces or hyphens for readability; the server pattern doesn't allow either. */
+function normalizePhone(value: string): string {
+  return value.replace(/[\s-]/g, "");
+}
 
 export default function NewFarmPage() {
   const router = useRouter();
@@ -74,7 +79,7 @@ export default function NewFarmPage() {
   const errors = {
     name: name.length > 0 && name.trim().length < 2 ? "Enter your full name." : undefined,
     phone:
-      phone.length > 0 && !PHONE.test(phone.replace(/\s/g, ""))
+      phone.length > 0 && !PHONE.test(normalizePhone(phone))
         ? "A 10-digit Indian mobile number, optionally with +91."
         : undefined,
     lat:
@@ -92,7 +97,7 @@ export default function NewFarmPage() {
   };
 
   const stepComplete = [
-    name.trim().length >= 2 && PHONE.test(phone.replace(/\s/g, "")) && Boolean(language),
+    name.trim().length >= 2 && PHONE.test(normalizePhone(phone)) && Boolean(language),
     Boolean(lat && lng && !errors.lat && !errors.lng && district.trim() && state.trim()),
     Boolean(crop.trim() && season && area && !errors.area),
     Boolean(soilType),
@@ -159,16 +164,11 @@ export default function NewFarmPage() {
     mutationFn: async () => {
       // A real farmer record first — the previous client hardcoded a fake
       // ObjectId on every farm it created (audit B12).
-      const farmerResponse = await fetch(`${API_BASE}/api/v1/farmers`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim(), phone: phone.replace(/\s/g, ""), language }),
+      const farmer = await api.createFarmer({
+        name: name.trim(),
+        phone: normalizePhone(phone),
+        language: language!,
       });
-      if (!farmerResponse.ok) {
-        const body = await farmerResponse.json().catch(() => ({}));
-        throw new Error(body.detail ?? "Could not save your details.");
-      }
-      const farmer = (await farmerResponse.json()) as { _id: string };
 
       return api.createFarm({
         farmer_id: farmer._id,

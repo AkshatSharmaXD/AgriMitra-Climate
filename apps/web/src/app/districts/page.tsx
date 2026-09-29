@@ -119,6 +119,7 @@ export default function DistrictsPage() {
             key={item.district}
             variant={item.district === selected ? "primary" : "secondary"}
             onClick={() => onSelect(item.district)}
+            className="shrink-0"
           >
             {item.district}
           </Button>
