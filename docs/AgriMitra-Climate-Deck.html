@@ -1,0 +1,852 @@
+<title>AgriMitra Climate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,600;0,700;1,9..144,400&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+/* ===========================================================================
+   AgriMitra Climate — Google AI Builder Cup
+
+   Palette grounded in the subject rather than in a deck template: crop green
+   from the product itself, turmeric and indigo from the mandi-and-ministry
+   world the product lives in. Neutrals carry a green bias so the greys sit
+   with the accent instead of against it.
+
+   The categorical four were run through a CVD validator, not eyeballed:
+   worst adjacent pair ΔE 11.1 protan / 28.7 tritan. Turmeric sits at 2.7:1
+   on the light ground, so every mark using it is directly labelled.
+
+   Type pairs IBM Plex Sans (institutional, the register of public
+   infrastructure) with Fraunces at display sizes for warmth, and Plex Mono
+   for figures. Plex also has Devanagari cuts, which matters when the product
+   ships in Hindi.
+   ========================================================================= */
+
+:root {
+  --ground:        #f2f7ef;   /* green-tinted field wash, not a neutral off-white */
+  --surface:       #ffffff;
+  --surface-sunk:  #e6efe1;
+  --ink:           #15211a;   /* 14.9:1 on ground */
+  --ink-2:         #425446;   /*  7.0:1 */
+  --ink-3:         #64786a;   /*  4.6:1 */
+  --rule:          #cfe0c8;
+
+  --green:         #157f3d;
+  --green-deep:    #0d5528;
+  --turmeric:      #d98a00;
+  --indigo:        #1f6fb2;
+  --plum:          #b02a6e;
+
+  --wash-green:    #e6f2e7;
+  --wash-turmeric: #fbf0d9;
+  --wash-indigo:   #e2eef8;
+
+  /* Full-bleed: the deck fills the projector rather than sitting in a column. */
+  --slide-pad: clamp(1.75rem, 4.5vw, 5.5rem);
+  --maxw: 100%;
+
+  --f-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --f-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--f-sans);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- deck chrome --------------------------------------------------------- */
+
+.deck { scroll-snap-type: y mandatory; overflow-y: auto; height: 100dvh; }
+
+.slide {
+  scroll-snap-align: start;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--slide-pad);
+  border-bottom: 1px solid var(--rule);
+  position: relative;
+}
+.slide > .inner { width: 100%; max-width: var(--maxw); margin: 0 auto; }
+
+/* Every slide's content starts on the same left edge; nothing is centred, so
+   the eye tracks one vertical line down the whole deck. */
+.slide > .inner > * { max-width: none; }
+.lede, .steps, .check, .src { text-align: left; }
+
+.eyebrow {
+  font-family: var(--f-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--green);
+  margin: 0 0 0.9rem;
+}
+.slide-no {
+  position: absolute;
+  bottom: calc(var(--slide-pad) * 0.55);
+  right: var(--slide-pad);
+  font-family: var(--f-mono);
+  font-size: 0.72rem;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+h1, h2, h3 { text-wrap: balance; margin: 0; }
+h1 {
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: clamp(2.6rem, 6.4vw, 5.2rem);
+  line-height: 0.98;
+  letter-spacing: -0.025em;
+}
+h2 {
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: clamp(1.85rem, 3.8vw, 3.1rem);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.7rem;
+}
+h3 {
+  font-family: var(--f-sans);
+  font-weight: 600;
+  font-size: 1.02rem;
+  letter-spacing: -0.005em;
+}
+.lede {
+  font-size: clamp(1.02rem, 1.5vw, 1.2rem);
+  color: var(--ink-2);
+  max-width: 78ch;
+  margin: 0 0 1.7rem;
+}
+p { margin: 0 0 0.85rem; }
+.muted { color: var(--ink-3); }
+.small { font-size: 0.86rem; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+/* --- layout helpers ------------------------------------------------------ */
+
+.grid { display: grid; gap: 1.1rem; }
+.g2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+.g3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
+.g4 { grid-template-columns: repeat(4, minmax(0,1fr)); }
+@media (min-width: 1500px) { .g3 { grid-template-columns: repeat(3, minmax(0,1fr)); gap: 1.6rem; } }
+.split { display: grid; grid-template-columns: 1.15fr 1fr; gap: clamp(1.75rem, 4vw, 4.5rem); align-items: center; }
+
+@media (max-width: 860px) {
+  .g3, .g4, .split { grid-template-columns: 1fr; }
+  .g2 { grid-template-columns: 1fr; }
+  .slide { min-height: auto; padding-block: 3.25rem; }
+  .deck { scroll-snap-type: none; height: auto; overflow: visible; }
+}
+
+/* --- pieces. Border/fill/shadow spent by role, not stamped everywhere ---- */
+
+.stat { border-left: 3px solid var(--green); padding-left: 1.1rem; display: flex; flex-direction: column; }
+.stat .n {
+  font-family: var(--f-display);
+  font-size: clamp(2.1rem, 4.4vw, 3.4rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  display: block;
+}
+.stat .l { font-size: 0.89rem; color: var(--ink-2); margin-top: auto; padding-top: 0.5rem; display: block; max-width: 26ch; }
+.stat.t { border-color: var(--turmeric); }
+.stat.i { border-color: var(--indigo); }
+.stat.p { border-color: var(--plum); }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  padding: 1.15rem 1.25rem;
+}
+.card h3 { margin-bottom: 0.4rem; }
+.card p { font-size: 0.92rem; color: var(--ink-2); margin: 0; }
+
+.pill {
+  display: inline-block;
+  font-family: var(--f-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background: var(--wash-green);
+  color: var(--green-deep);
+}
+.pill.t { background: var(--wash-turmeric); color: var(--turmeric); }
+.pill.i { background: var(--wash-indigo); color: var(--indigo); }
+
+table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+th, td { text-align: left; padding: 0.6rem 0.7rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th {
+  font-family: var(--f-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 600;
+}
+td.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+tr.us td { background: var(--wash-green); font-weight: 600; }
+.scroll-x { overflow-x: auto; }
+.scroll-x table { min-width: 720px; }
+
+.steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.55rem; }
+.steps li { display: grid; grid-template-columns: auto 1fr; gap: 0.75rem; align-items: start; font-size: 0.94rem; }
+.steps .k {
+  font-family: var(--f-mono); font-size: 0.7rem; font-weight: 600;
+  color: var(--green); padding-top: 0.22rem; min-width: 1.6rem;
+}
+
+.check { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.5rem; }
+.check li { display: grid; grid-template-columns: auto 1fr; gap: 0.6rem; font-size: 0.93rem; color: var(--ink-2); }
+.check li::before { content: "—"; color: var(--green); font-weight: 600; }
+
+.quote {
+  font-family: var(--f-display);
+  font-size: clamp(1.3rem, 2.6vw, 2rem);
+  font-style: italic;
+  line-height: 1.25;
+  color: var(--ink);
+  border-left: 3px solid var(--turmeric);
+  padding-left: 1.2rem;
+  max-width: 34ch;
+}
+
+figure { margin: 0; }
+.chart-wide { max-width: 1240px; }
+.chart-tall { max-width: 460px; }
+figcaption { font-size: 0.78rem; color: var(--ink-3); margin-top: 0.6rem; }
+svg { display: block; max-width: 100%; height: auto; }
+.src { font-size: 0.75rem; color: var(--ink-3); margin-top: 1.6rem; line-height: 1.6; max-width: 110ch; }
+.src a { color: var(--ink-3); }
+
+a { color: var(--green); }
+:focus-visible { outline: 2.5px solid var(--green); outline-offset: 3px; border-radius: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+/* Print / PDF: one 16:9 page per slide, so the exported file is a real deck
+   rather than a long scroll cut into arbitrary pages. */
+@page { size: 13.333in 7.5in; margin: 0; }
+@media print {
+  html, body { background: var(--ground); }
+  .deck { height: auto; overflow: visible; scroll-snap-type: none; }
+  .slide {
+    width: 13.333in;
+    height: 7.5in;
+    min-height: 0;
+    padding: 0.62in 0.75in;
+    border: 0;
+    break-after: page;
+    page-break-after: always;
+    overflow: hidden;
+  }
+  .slide:last-child { break-after: auto; page-break-after: auto; }
+  .chart-wide { max-width: 10.4in; }
+  .chart-tall { max-width: 3.6in; }
+  .scroll-x { overflow: visible; }
+  .scroll-x table { min-width: 0; }
+  table { font-size: 0.78rem; }
+  th, td { padding: 0.36rem 0.5rem; }
+  .src { font-size: 0.62rem; margin-top: 0.8rem; }
+
+  /* Chrome lays print pages out at a narrow viewport, which otherwise trips the
+     860px mobile breakpoint and stacks every grid into one overflowing column. */
+  .g2 { grid-template-columns: repeat(2, minmax(0,1fr)) !important; }
+  .g3 { grid-template-columns: repeat(3, minmax(0,1fr)) !important; }
+  .g4 { grid-template-columns: repeat(4, minmax(0,1fr)) !important; }
+  .split { grid-template-columns: 1.15fr 1fr !important; gap: 0.55in !important; }
+  .grid { gap: 0.9rem; }
+
+  /* Type is sized in vw for the screen; pin it to points so a page holds. */
+  h1 { font-size: 46pt; }
+  h2 { font-size: 27pt; }
+  h3 { font-size: 11pt; }
+  .lede { font-size: 11.5pt; max-width: 88ch; margin-bottom: 0.9rem; }
+  .stat .n { font-size: 30pt; }
+  .stat .l { font-size: 8.5pt; }
+  .card { padding: 0.7rem 0.8rem; }
+  .card p { font-size: 9pt; }
+  .check li, .steps li { font-size: 9.5pt; }
+  .quote { font-size: 17pt; }
+  figcaption { font-size: 8pt; }
+  .eyebrow { font-size: 7.5pt; margin-bottom: 0.5rem; }
+}
+</style>
+
+<div class="deck" id="deck">
+
+<!-- 01 ─ title ─────────────────────────────────────────────────────────── -->
+<section class="slide" style="background:var(--surface-sunk)">
+  <div class="inner">
+    <p class="eyebrow">Google AI Builder Cup · Agriculture &amp; Climate</p>
+    <h1>The advisory a<br>farmer never gets.</h1>
+    <p class="lede" style="margin-top:1.4rem">
+      AgriMitra Climate reads a specific field — its weather, its satellite vegetation,
+      its soil, its crop — and returns one decision for the week ahead, with every
+      assumption shown.
+    </p>
+    <div class="grid g4" style="margin-top:2.4rem">
+      <div class="stat"><span class="n">86%</span><span class="l">of Indian farmers hold under 2 hectares</span></div>
+      <div class="stat t"><span class="n">1:1000</span><span class="l">extension officers to farmers</span></div>
+      <div class="stat i"><span class="n">15–25%</span><span class="l">of yield lost to pests and disease</span></div>
+      <div class="stat p"><span class="n">₹1.4L cr</span><span class="l">upper bound of that loss, annually</span></div>
+    </div>
+  </div>
+  <span class="slide-no">01</span>
+</section>
+
+<!-- 02 ─ the farmer ───────────────────────────────────────────────────── -->
+<section class="slide">
+  <div class="inner split">
+    <div>
+      <p class="eyebrow">The user</p>
+      <h2>Ravi farms 0.8 hectares in Alwar.</h2>
+      <p class="lede">
+        He knows rain is coming. What he does not know is whether, given his loamy
+        soil, his limited irrigation, the state of his wheat this week and the
+        forecast, he should irrigate now or wait.
+      </p>
+      <ul class="check">
+        <li>The nearest extension officer covers roughly a thousand farms like his.</li>
+        <li>Weather apps give a forecast, not a decision.</li>
+        <li>A disease scanner names a disease, then stops.</li>
+        <li>Advice that arrives on WhatsApp is generic to the district, not to the field.</li>
+      </ul>
+    </div>
+    <div>
+      <p class="quote">Rain is coming. So — do I irrigate today, or lose the window?</p>
+      <p class="small muted" style="margin-top:1.6rem;max-width:40ch">
+        Farmers who receive early, accurate guidance cut crop losses by
+        <strong style="color:var(--ink)">30–60%</strong>. The signal exists.
+        It does not reach the field in a form anyone can act on.
+      </p>
+    </div>
+  </div>
+  <span class="slide-no">02</span>
+</section>
+
+<!-- 03 ─ loss breakdown chart ─────────────────────────────────────────── -->
+<section class="slide">
+  <div class="inner">
+    <p class="eyebrow">Problem · magnitude</p>
+    <h2>A third of the crop is lost before it leaves the field.</h2>
+    <p class="lede">Share of Indian production lost, by cause. Every one of these is
+      visible in a leaf or a soil-moisture reading days before it becomes a loss.</p>
+
+    <figure class="chart-wide">
+      <!-- Single series, magnitude: one hue, direct labels, no legend needed. -->
+      <svg viewBox="0 0 900 250" role="img" aria-label="Production loss by cause: weeds 12.5 percent, insects 9.5 percent, disease 6.5 percent, other pests 4.5 percent, totalling 33 percent.">
+        <g font-family="IBM Plex Mono, monospace" font-size="13">
+          <!-- rows -->
+          <g>
+            <text x="0" y="26" fill="var(--ink)" font-family="IBM Plex Sans, sans-serif" font-size="14">Weeds</text>
+            <rect x="150" y="12" width="500" height="20" rx="4" fill="var(--green)"></rect>
+            <text x="662" y="27" fill="var(--ink)" font-weight="600">12.5%</text>
+          </g>
+          <g>
+            <text x="0" y="79" fill="var(--ink)" font-family="IBM Plex Sans, sans-serif" font-size="14">Insect pests</text>
+            <rect x="150" y="65" width="380" height="20" rx="4" fill="var(--green)" opacity="0.82"></rect>
+            <text x="542" y="80" fill="var(--ink)" font-weight="600">9.5%</text>
+          </g>
+          <g>
+            <text x="0" y="132" fill="var(--ink)" font-family="IBM Plex Sans, sans-serif" font-size="14">Disease</text>
+            <rect x="150" y="118" width="260" height="20" rx="4" fill="var(--green)" opacity="0.64"></rect>
+            <text x="422" y="133" fill="var(--ink)" font-weight="600">6.5%</text>
+          </g>
+          <g>
+            <text x="0" y="185" fill="var(--ink)" font-family="IBM Plex Sans, sans-serif" font-size="14">Other pests</text>
+            <rect x="150" y="171" width="180" height="20" rx="4" fill="var(--green)" opacity="0.46"></rect>
+            <text x="342" y="186" fill="var(--ink)" font-weight="600">4.5%</text>
+          </g>
+          <!-- baseline + total -->
+          <line x1="150" y1="206" x2="760" y2="206" stroke="var(--rule)" stroke-width="1"></line>
+          <text x="150" y="232" fill="var(--ink-3)" font-size="12">0%</text>
+          <text x="650" y="232" fill="var(--ink-3)" font-size="12" text-anchor="end">12.5%</text>
+          <text x="770" y="27" fill="var(--turmeric)" font-size="15" font-weight="600">33%</text>
+          <text x="770" y="47" fill="var(--ink-3)" font-size="11" font-family="IBM Plex Sans, sans-serif">combined</text>
+        </g>
+      </svg>
+      <figcaption>Shares are of total production loss attributed to pests in Indian agriculture.</figcaption>
+    </figure>
+  </div>
+  <span class="slide-no">03</span>
+</section>
+
+<!-- 04 ─ why tools fail ───────────────────────────────────────────────── -->
+<section class="slide" style="background:var(--surface-sunk)">
+  <div class="inner">
+    <p class="eyebrow">Problem · why today's tools miss</p>
+    <h2>Six apps, no answer.</h2>
+    <p class="lede">The data a farmer needs already exists. It arrives in fragments,
+      none of which knows about the others, and none of which knows the field.</p>
+
+    <div class="grid g3">
+      <div class="card"><h3>Weather is not advice</h3><p>A 7-day forecast is an input. Turning it into “irrigate Thursday, not today” needs the soil, the crop stage and the water available.</p></div>
+      <div class="card"><h3>Diagnosis stops at the name</h3><p>A scanner returns “Early blight” and ends. It never reaches the risk score, and never changes what the farmer is told to do next.</p></div>
+      <div class="card"><h3>Satellite stays with agronomists</h3><p>NDVI is routine in enterprise platforms and absent from the farmer's phone.</p></div>
+      <div class="card"><h3>Advice is district-wide</h3><p>Two farms in one district with different soil and irrigation get identical guidance.</p></div>
+      <div class="card"><h3>Confidence is never shown</h3><p>Tools present estimates as measurements. A farmer cannot tell which number to trust.</p></div>
+      <div class="card"><h3>States cannot share models</h3><p>Every state rebuilds its own crop dataset and risk logic. Nothing is interoperable.</p></div>
+    </div>
+  </div>
+  <span class="slide-no">04</span>
+</section>
+
+<!-- 05 ─ the product ──────────────────────────────────────────────────── -->
+<section class="slide">
+  <div class="inner">
+    <p class="eyebrow">The solution</p>
+    <h2>One field. Five signals. One decision.</h2>
+    <p class="lede">Deterministic logic computes the score. Gemini explains it. The
+      model never invents a measurement — an architectural rule, enforced in code.</p>
+
+    <div class="split" style="align-items:start">
+      <ol class="steps">
+        <li><span class="k">01</span><span><strong>Field profile</strong> — location, crop, season, soil, irrigation. Entered once; GPS fills district and state.</span></li>
+        <li><span class="k">02</span><span><strong>Live weather</strong> — current conditions and a 7-day forecast for that coordinate.</span></li>
+        <li><span class="k">03</span><span><strong>Satellite vegetation</strong> — Sentinel-2 NDVI reduced over the field via Google Earth Engine.</span></li>
+        <li><span class="k">04</span><span><strong>Leaf scan</strong> — a photograph routed to MobileNetV2, escalating to Gemini multimodal below the confidence threshold.</span></li>
+        <li><span class="k">05</span><span><strong>Risk score</strong> — five weighted factors, and a written note for every factor that had no evidence.</span></li>
+        <li><span class="k">06</span><span><strong>Advisory</strong> — Gemini narrates the computed numbers in English, हिन्दी, ગુજરાતી or తెలుగు.</span></li>
+      </ol>
+
+      <div>
+        <div class="card" style="border-color:var(--green);border-width:1px">
+          <p class="pill">Risk engine</p>
+          <h3 style="margin-top:0.7rem">Water 0.30 · Heat 0.20 · Disease 0.20 · Rainfall 0.15 · Vegetation 0.15</h3>
+          <p style="margin-top:0.6rem">When the weather service is unreachable, heat and rainfall are
+            <strong style="color:var(--ink)">dropped from the weighted score</strong> and the remaining
+            weights renormalised — never silently read as zero.</p>
+        </div>
+        <div class="card" style="margin-top:0.9rem">
+          <p class="pill t">Shown to the farmer</p>
+          <p style="margin-top:0.6rem" class="mono small">“No leaf analysis on record; disease risk uses the
+            neutral baseline (30/100). Scan a leaf to replace it.”</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <span class="slide-no">05</span>
+</section>
+
+<!-- 06 ─ differentiator: honesty ──────────────────────────────────────── -->
+<section class="slide">
+  <div class="inner split">
+    <div>
+      <p class="eyebrow">What makes it different</p>
+      <h2>It tells the farmer what it does not know.</h2>
+      <p class="lede">Agricultural advice moves money and food. A confident wrong
+        answer is worse than an admitted gap — so provenance is a first-class field
+        in the API, not a footnote in the UI.</p>
+      <ul class="check">
+        <li>Every measurement carries <span class="mono">is_live</span>, <span class="mono">degraded</span> and <span class="mono">is_demo</span> — the types make them non-optional, so a screen cannot render a number without the means to label it.</li>
+        <li>Demo satellite data says <em>“Demo dataset — not a live satellite observation.”</em></li>
+        <li>With no Gemini key, the advisory is labelled rule-based rather than passed off as model output.</li>
+        <li>Mandi prices return a 503 when unconfigured. Never an estimate.</li>
+        <li>The leaf scanner names the 14 crops it was trained on, and warns before you photograph a crop outside them.</li>
+      </ul>
+    </div>
+    <div>
+      <figure class="chart-tall">
+        <svg viewBox="0 0 420 300" role="img" aria-label="Risk shown as a soil core: five strata whose widths are the weight each factor carried and whose heights are its sub-score.">
+          <rect x="0" y="0" width="420" height="230" fill="var(--surface-sunk)" rx="8"></rect>
+          <!-- widths = weight, heights = sub-score -->
+          <g>
+            <rect x="0" y="62"  width="126" height="168" fill="var(--green)" opacity="0.9"></rect>
+            <rect x="128" y="138" width="84" height="92" fill="var(--green)" opacity="0.72"></rect>
+            <rect x="214" y="106" width="84" height="124" fill="var(--turmeric)"></rect>
+            <rect x="300" y="170" width="63" height="60" fill="var(--green)" opacity="0.55"></rect>
+            <rect x="365" y="94"  width="55" height="136" fill="var(--turmeric)" opacity="0.75"></rect>
+          </g>
+          <g font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--ink-2)">
+            <text x="6" y="252">WATER 72</text>
+            <text x="132" y="252">HEAT 41</text>
+            <text x="218" y="252">DISEASE 55</text>
+            <text x="304" y="252">RAIN 26</text>
+            <text x="369" y="252">VEG 60</text>
+          </g>
+          <text x="6" y="284" font-family="IBM Plex Sans, sans-serif" font-size="12" fill="var(--ink-3)">
+            Width = weight carried · Height = sub-score
+          </text>
+        </svg>
+        <figcaption>The signature view. It answers “what is driving this number” — which five
+          independent progress bars cannot. A factor with no evidence is absent, not drawn at zero.</figcaption>
+      </figure>
+    </div>
+  </div>
+  <span class="slide-no">06</span>
+</section>
+
+<!-- 07 ─ competitive landscape chart ──────────────────────────────────── -->
+<section class="slide" style="background:var(--surface-sunk)">
+  <div class="inner">
+    <p class="eyebrow">Market · positioning</p>
+    <h2>Everyone owns one layer. Nobody owns the decision.</h2>
+    <p class="lede">Horizontal: who the product serves. Vertical: whether it answers a
+      single question or produces a field-level decision.</p>
+
+    <figure class="chart-wide">
+      <svg viewBox="0 0 920 430" role="img" aria-label="Positioning matrix. Plantix, AgroStar, DeHaat and Kisan Suvidha sit on the farmer-facing, single-purpose side. CropIn and Fasal sit on the enterprise, integrated side. AgriMitra sits farmer-facing and integrated.">
+        <!-- quadrant ground -->
+        <rect x="70" y="20" width="800" height="340" fill="var(--surface)" stroke="var(--rule)" rx="6"></rect>
+        <line x1="470" y1="20" x2="470" y2="360" stroke="var(--rule)" stroke-dasharray="3 4"></line>
+        <line x1="70" y1="190" x2="870" y2="190" stroke="var(--rule)" stroke-dasharray="3 4"></line>
+
+        <!-- axes -->
+        <g font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--ink-3)">
+          <text x="80" y="380">FARMER-FACING</text>
+          <text x="860" y="380" text-anchor="end">ENTERPRISE / GOVERNMENT</text>
+          <text x="62" y="34" text-anchor="end" font-size="10">INTEGRATED</text>
+          <text x="62" y="356" text-anchor="end" font-size="10">SINGLE-PURPOSE</text>
+        </g>
+
+        <!-- marks. Every point directly labelled: turmeric is 2.7:1 on this
+             ground, so identity never rests on the fill alone. -->
+        <g font-family="IBM Plex Sans, sans-serif" font-size="13" font-weight="600">
+          <circle cx="180" cy="288" r="9" fill="var(--turmeric)" stroke="var(--surface)" stroke-width="2"></circle>
+          <text x="196" y="293" fill="var(--ink)">Plantix</text>
+          <text x="196" y="309" fill="var(--ink-3)" font-size="11" font-weight="400">Photo diagnosis · free</text>
+
+          <circle cx="300" cy="248" r="9" fill="var(--turmeric)" stroke="var(--surface)" stroke-width="2"></circle>
+          <text x="316" y="253" fill="var(--ink)">AgroStar</text>
+          <text x="316" y="269" fill="var(--ink-3)" font-size="11" font-weight="400">Inputs commerce · 5M+ farmers</text>
+
+          <circle cx="390" cy="318" r="9" fill="var(--turmeric)" stroke="var(--surface)" stroke-width="2"></circle>
+          <text x="406" y="323" fill="var(--ink)">DeHaat</text>
+          <text x="406" y="339" fill="var(--ink-3)" font-size="11" font-weight="400">Full-stack supply chain</text>
+
+          <circle cx="600" cy="330" r="9" fill="var(--plum)" stroke="var(--surface)" stroke-width="2"></circle>
+          <text x="616" y="335" fill="var(--ink)">Kisan Suvidha</text>
+          <text x="616" y="351" fill="var(--ink-3)" font-size="11" font-weight="400">Govt · mandi prices, weather</text>
+
+          <circle cx="740" cy="90" r="9" fill="var(--indigo)" stroke="var(--surface)" stroke-width="2"></circle>
+          <text x="756" y="95" fill="var(--ink)">CropIn</text>
+          <text x="756" y="111" fill="var(--ink-3)" font-size="11" font-weight="400">250+ clients, 52 countries</text>
+
+          <circle cx="648" cy="150" r="9" fill="var(--indigo)" stroke="var(--surface)" stroke-width="2"></circle>
+          <text x="664" y="155" fill="var(--ink)">Fasal</text>
+          <text x="664" y="171" fill="var(--ink-3)" font-size="11" font-weight="400">IoT precision ag</text>
+
+          <circle cx="240" cy="86" r="13" fill="var(--green)" stroke="var(--surface)" stroke-width="3"></circle>
+          <text x="262" y="84" fill="var(--green)" font-size="15">AgriMitra Climate</text>
+          <text x="262" y="102" fill="var(--ink-2)" font-size="11" font-weight="400">Field-level decision, farmer-facing, open</text>
+        </g>
+
+        <!-- legend: identity is never colour-alone, but a legend is still present -->
+        <g font-family="IBM Plex Sans, sans-serif" font-size="11" fill="var(--ink-2)">
+          <circle cx="78" cy="410" r="5" fill="var(--turmeric)"></circle><text x="90" y="414">Consumer agritech startup</text>
+          <circle cx="258" cy="410" r="5" fill="var(--indigo)"></circle><text x="270" y="414">Enterprise / B2B platform</text>
+          <circle cx="428" cy="410" r="5" fill="var(--plum)"></circle><text x="440" y="414">Government service</text>
+          <circle cx="578" cy="410" r="5" fill="var(--green)"></circle><text x="590" y="414">This project</text>
+        </g>
+      </svg>
+      <figcaption>Placement reflects each product's primary positioning, not its full feature list.</figcaption>
+    </figure>
+  </div>
+  <span class="slide-no">07</span>
+</section>
+
+<!-- 08 ─ competitor table ─────────────────────────────────────────────── -->
+<section class="slide">
+  <div class="inner">
+    <p class="eyebrow">Market · who does what</p>
+    <h2>The landscape, honestly.</h2>
+    <p class="lede">These are strong products. The gap is not that they are bad — it is
+      that none of them closes the loop from satellite and soil to a decision the
+      farmer can act on, and none is built to be shared between states.</p>
+
+    <div class="scroll-x">
+      <table>
+        <thead>
+          <tr>
+            <th>Product</th><th>Type</th><th>Core strength</th><th>Scale</th><th>Gap this leaves</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Plantix</strong></td>
+            <td><span class="pill t">Startup</span></td>
+            <td>Best-in-class photo disease diagnosis, free, many Indian languages</td>
+            <td class="num">—</td>
+            <td>Diagnosis only; no soil, satellite or field risk</td>
+          </tr>
+          <tr>
+            <td><strong>AgroStar</strong></td>
+            <td><span class="pill t">Startup</span></td>
+            <td>Content-led input commerce; farmers post crop photos for advice</td>
+            <td class="num">5M+ farmers</td>
+            <td>Advisory serves product sales; not a neutral decision layer</td>
+          </tr>
+          <tr>
+            <td><strong>DeHaat</strong></td>
+            <td><span class="pill t">Startup</span></td>
+            <td>Full-stack inputs, advisory and market linkage across 12 states</td>
+            <td class="num">$700M+ val.</td>
+            <td>Supply-chain first; satellite risk is not the product</td>
+          </tr>
+          <tr>
+            <td><strong>CropIn</strong></td>
+            <td><span class="pill i">Enterprise</span></td>
+            <td>Satellite + ML farm intelligence; Gemini partnership since 2024</td>
+            <td class="num">52 countries</td>
+            <td>Sold to agribusiness, not reachable by a 0.8 ha farmer</td>
+          </tr>
+          <tr>
+            <td><strong>Fasal</strong></td>
+            <td><span class="pill i">Enterprise</span></td>
+            <td>IoT sensors driving hyper-local irrigation and spray timing</td>
+            <td class="num">—</td>
+            <td>Requires hardware per farm; capital cost excludes smallholders</td>
+          </tr>
+          <tr>
+            <td><strong>Kisan Suvidha</strong></td>
+            <td><span class="pill">Government</span></td>
+            <td>Official mandi prices, weather and advisories, free</td>
+            <td class="num">National</td>
+            <td>Reference data, not analysis; nothing is field-specific</td>
+          </tr>
+          <tr class="us">
+            <td><strong>AgriMitra Climate</strong></td>
+            <td><span class="pill">This project</span></td>
+            <td>Satellite + soil + weather + leaf → one explainable field risk score</td>
+            <td class="num">Hackathon build</td>
+            <td>Unproven at scale — see roadmap</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="small muted" style="margin-top:1.1rem">
+      Indian agritech raised <strong style="color:var(--ink)">$241M across 60 rounds in 2025</strong>;
+      the market is projected to grow from <strong style="color:var(--ink)">$974M (2025) to $2.52B by 2034</strong>.
+    </p>
+  </div>
+  <span class="slide-no">08</span>
+</section>
+
+<!-- 09 ─ google ai stack ──────────────────────────────────────────────── -->
+<section class="slide" style="background:var(--surface-sunk)">
+  <div class="inner">
+    <p class="eyebrow">Architecture</p>
+    <h2>Google AI, load-bearing.</h2>
+    <p class="lede">Each service below has a caller and a user-reachable code path. Where
+      credentials are absent the feature degrades to a labelled fallback — it is never
+      faked to pad a list.</p>
+
+    <div class="grid g3">
+      <div class="card">
+        <p class="pill">Reasoning</p>
+        <h3 style="margin-top:0.6rem">Gemini API · Vertex AI</h3>
+        <p>Advisory, assistant, district interventions, crop-ranking explanations. Structured output, temperature 0.2, and a system instruction forbidding invented measurements. Vertex gives a second auth path using service-account IAM, so Cloud Run holds no API key.</p>
+      </div>
+      <div class="card">
+        <p class="pill">Vision</p>
+        <h3 style="margin-top:0.6rem">Gemini multimodal</h3>
+        <p>Second opinion whenever the local classifier falls below 0.70 — which is every crop outside its 14 trained ones, i.e. most Indian staples.</p>
+      </div>
+      <div class="card">
+        <p class="pill">Geospatial</p>
+        <h3 style="margin-top:0.6rem">Earth Engine · Maps</h3>
+        <p>Sentinel-2 NDVI reduced over a 150 m buffer, cloud-filtered to 30%. Maps Platform renders the district risk layer.</p>
+      </div>
+      <div class="card">
+        <p class="pill">Language</p>
+        <h3 style="margin-top:0.6rem">Speech &amp; Translation</h3>
+        <p>Cloud Speech-to-Text and Text-to-Speech for the browsers with no Web Speech API — Android WebView, most in-app browsers. Translation localises the scheme directory.</p>
+      </div>
+      <div class="card">
+        <p class="pill">Data</p>
+        <h3 style="margin-top:0.6rem">BigQuery · Cloud Storage</h3>
+        <p>Every computed risk is appended to a warehouse time series, including which factors carried evidence. Leaf photos are retained as the evidence behind a diagnosis.</p>
+      </div>
+      <div class="card">
+        <p class="pill">Platform</p>
+        <h3 style="margin-top:0.6rem">Cloud Run · Secret Manager</h3>
+        <p>Three services, non-root images, health checks. Secrets injected at runtime. Pub/Sub fans out NDVI refresh; Redis caches weather and satellite reads.</p>
+      </div>
+    </div>
+
+    <p class="small muted" style="margin-top:1.2rem">
+      Public data: <span class="mono">data.gov.in</span> Agmarknet mandi prices · Open-Meteo forecast and historical archive ·
+      OpenStreetMap reverse geocoding · Sentinel-2 via Earth Engine.
+    </p>
+  </div>
+  <span class="slide-no">09</span>
+</section>
+
+<!-- 10 ─ the DPG thesis ───────────────────────────────────────────────── -->
+<section class="slide">
+  <div class="inner split">
+    <div>
+      <p class="eyebrow">The thesis</p>
+      <h2>A crop dataset is a public good. Ship it as one.</h2>
+      <p class="lede">The challenge asks for an interoperable network that lets Indian
+        states share agricultural data models. Two things in this system already
+        <em>are</em> portable models — they simply need publishing as such.</p>
+      <ul class="check">
+        <li><strong>The crop dataset</strong> — ten crops with season, soil, water, temperature and rainfall envelopes.</li>
+        <li><strong>The risk model</strong> — five named weights, four bands, and the rules for dropping a factor with no evidence.</li>
+      </ul>
+      <p style="margin-top:1.1rem">Published as versioned JSON Schema behind a federation
+        API, Rajasthan's crop model becomes something Maharashtra can adopt, critique
+        or replace — without a bilateral integration.</p>
+    </div>
+    <div>
+      <div class="card" style="border-color:var(--green)">
+        <p class="pill">Federation, privacy first</p>
+        <ul class="check" style="margin-top:0.8rem">
+          <li><strong>Aggregates only.</strong> No farm record, no farmer record, no coordinate finer than a district centroid crosses a boundary.</li>
+          <li><strong>A k-anonymity floor.</strong> A district with fewer than ten farms is omitted — “1 farm, CRITICAL, Wheat” identifies a person.</li>
+          <li><strong>Signed manifests.</strong> A peer verifies before ingesting, so a hostile node cannot poison another state's dashboard.</li>
+          <li><strong>Enforced by test</strong>, not by policy prose.</li>
+        </ul>
+      </div>
+      <p class="small muted" style="margin-top:0.9rem">Open licence · open standard · documented ·
+        no PII · platform independent — the five Digital Public Good criteria, each mapped to
+        where the code satisfies it.</p>
+    </div>
+  </div>
+  <span class="slide-no">10</span>
+</section>
+
+<!-- 11 ─ what is built ────────────────────────────────────────────────── -->
+<section class="slide">
+  <div class="inner">
+    <p class="eyebrow">Status · built and running</p>
+    <h2>Working software, not slideware.</h2>
+
+    <div class="grid g4" style="margin-bottom:1.8rem">
+      <div class="stat"><span class="n">26</span><span class="l">API endpoints, OpenAPI-documented</span></div>
+      <div class="stat i"><span class="n">90</span><span class="l">automated tests across two services</span></div>
+      <div class="stat t"><span class="n">10</span><span class="l">screens, 4 languages, light and dark</span></div>
+      <div class="stat p"><span class="n">100</span><span class="l">seeded farms across 10 districts</span></div>
+    </div>
+
+    <div class="grid g2">
+      <div>
+        <h3 style="margin-bottom:0.6rem">Running end to end</h3>
+        <ul class="check">
+          <li>Farm registration with GPS → district resolution → risk in one flow, against MongoDB Atlas.</li>
+          <li>Live Open-Meteo weather and measured seasonal rainfall from the historical archive.</li>
+          <li>Leaf scan: 20 ms rejection of non-leaves, 160–260 ms inference, 612 ms for a 3600 px photo.</li>
+          <li>District roll-up aggregating 100 farms into risk bands and dominant crops.</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="margin-bottom:0.6rem">Bugs found and fixed by testing, not reading</h3>
+        <ul class="check">
+          <li>A confident <em>healthy</em> leaf produced a disease risk of <span class="mono">95/100</span>.</li>
+          <li>The leaf detector rejected every diseased colour — rust, blight, necrosis — as “not a plant”.</li>
+          <li>Crop rainfall was compared in mm/hour against a mm/season requirement, so that criterion never scored.</li>
+          <li>A dead weather API was read as “0 °C, no rain” instead of as missing.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <span class="slide-no">11</span>
+</section>
+
+<!-- 12 ─ roadmap ──────────────────────────────────────────────────────── -->
+<section class="slide" style="background:var(--surface-sunk)">
+  <div class="inner">
+    <p class="eyebrow">Roadmap</p>
+    <h2>What comes next, in order.</h2>
+    <p class="lede">Ranked by value to a farmer or an officer, divided by effort.</p>
+
+    <div class="scroll-x">
+      <table>
+        <thead><tr><th>Next</th><th>What it unlocks</th><th>Effort</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Federation layer</strong></td><td>Published schema plus peer endpoints — the interoperable network the challenge asks for</td><td class="num">1 day</td></tr>
+          <tr><td><strong>FAO crop coefficients</strong></td><td>Replaces prototype constants with citable FAO-56 values</td><td class="num">2 hours</td></tr>
+          <tr><td><strong>Regenerative scoring</strong></td><td>Rotation-aware ranking: a legume after a cereal scores above the cereal repeated</td><td class="num">0.5 day</td></tr>
+          <tr><td><strong>Vertex AI AutoML</strong></td><td>Next-season risk forecast trained on the BigQuery history, shown beside the computed score, never replacing it</td><td class="num">1 day</td></tr>
+          <tr><td><strong>Indian crop disease model</strong></td><td>Wheat, rice, mustard, chickpea — the crops the current checkpoint has never seen</td><td class="num">Ongoing</td></tr>
+          <tr><td><strong>ISRO Bhuvan · IMD</strong></td><td>Indian sovereign satellite and meteorological sources behind the existing provider interface</td><td class="num">1 day</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <span class="slide-no">12</span>
+</section>
+
+<!-- 13 ─ close ────────────────────────────────────────────────────────── -->
+<section class="slide">
+  <div class="inner">
+    <p class="eyebrow">AgriMitra Climate</p>
+    <h1 style="max-width:16ch">Give the field a voice it can act on.</h1>
+    <p class="lede" style="margin-top:1.5rem;font-size:1.12rem">
+      Not another weather app. Not another disease scanner. The first layer that
+      reads a specific field across every signal available — and is honest about
+      the ones it is missing.
+    </p>
+    <div class="grid g3" style="margin-top:2.2rem">
+      <div class="card"><h3>For the farmer</h3><p>A weekly decision, in their language, with the working shown.</p></div>
+      <div class="card"><h3>For the officer</h3><p>District risk hotspots and AI intervention priorities, from real aggregation.</p></div>
+      <div class="card"><h3>For the state</h3><p>A crop model and a risk model any other state can adopt, critique or replace.</p></div>
+    </div>
+
+    <p class="src">
+      Sources — Agriculture Census 2015–16 (86.1% of holdings under 2 ha; marginal holdings average 0.38 ha) ·
+      ICAR / CEEW on crop losses (15–25% of yield; ₹0.9–1.4 lakh crore annually; weeds 12.5%, insects 9.5%,
+      disease 6.5%, other 4.5%) · extension coverage ≈ 1 officer per 1,000 farmers; early accurate guidance
+      reduces losses 30–60% · Tracxn, Inc42 and AgroSpectrum India on funding and market size ($241M across
+      60 rounds in 2025; $974M in 2025 to $2.52B by 2034) · company profiles from Tracxn, TechCrunch and
+      Decentro. Figures describe the Indian market as reported by those sources; placements on slide 07 are
+      our reading of each product's primary positioning.
+    </p>
+  </div>
+  <span class="slide-no">13</span>
+</section>
+
+</div>
+
+<script>
+// Arrow keys and Page Up/Down move between slides, so the deck can be presented
+// without a mouse. Native scroll-snap does the animation.
+(function () {
+  var deck = document.getElementById("deck");
+  var slides = Array.prototype.slice.call(deck.querySelectorAll(".slide"));
+
+  function current() {
+    var top = deck.scrollTop;
+    var best = 0, bestGap = Infinity;
+    slides.forEach(function (s, i) {
+      var gap = Math.abs(s.offsetTop - top);
+      if (gap < bestGap) { bestGap = gap; best = i; }
+    });
+    return best;
+  }
+
+  function go(delta) {
+    var next = Math.min(slides.length - 1, Math.max(0, current() + delta));
+    deck.scrollTo({ top: slides[next].offsetTop, behavior: "smooth" });
+  }
+
+  document.addEventListener("keydown", function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === "ArrowDown" || e.key === "PageDown" || e.key === " ") { e.preventDefault(); go(1); }
+    else if (e.key === "ArrowUp" || e.key === "PageUp") { e.preventDefault(); go(-1); }
+    else if (e.key === "Home") { e.preventDefault(); deck.scrollTo({ top: 0, behavior: "smooth" }); }
+    else if (e.key === "End") { e.preventDefault(); go(slides.length); }
+  });
+})();
+</script>
