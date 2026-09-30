@@ -145,28 +145,26 @@ export default function OnboardingPage() {
                   "rounded-xl overflow-hidden flex flex-col h-full min-h-[280px]",
                   "shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300",
                   "hover:-translate-y-2 hover:shadow-[0_16px_40px_rgb(0,0,0,0.2)]",
-                  card.solid ? card.color : "bg-white"
+                  "bg-white"
                 )}
               >
                 <div className="p-5 flex-1 flex flex-col items-center text-center">
                   {/* Circular icon — matches PMFBY exactly */}
                   <div className={cn(
                     "size-[72px] rounded-full flex items-center justify-center mb-4 shadow-sm",
-                    card.solid 
-                      ? "border-2 border-white/60 bg-white/20 text-white" 
-                      : `${card.color} text-white`
+                    `${card.color} text-white`
                   )}>
                     <Icon className="size-9" strokeWidth={1.5} />
                   </div>
                   <h3 className={cn(
                     "font-bold text-[14px] leading-snug mb-3",
-                    card.solid ? "text-white" : "text-gray-800"
+                    "text-gray-800"
                   )}>
                     {t(card.title)}
                   </h3>
                   <p className={cn(
                     "text-[12px] leading-relaxed",
-                    card.solid ? "text-white/85" : "text-gray-500"
+                    "text-gray-500"
                   )}>
                     {t(card.subtitle)}
                   </p>
@@ -176,9 +174,7 @@ export default function OnboardingPage() {
                     href={card.href}
                     className={cn(
                       "flex items-center justify-center gap-1.5 w-full py-2.5 rounded-lg text-[13px] font-bold transition-all",
-                      card.solid 
-                        ? "bg-white text-[#f4a261] hover:bg-gray-100 shadow-sm" 
-                        : "bg-[#1b5e20] text-white hover:bg-[#144d18] shadow-sm"
+                      "bg-[#1b5e20] text-white hover:bg-[#144d18] shadow-sm"
                     )}
                   >
                     {t(card.action)}
