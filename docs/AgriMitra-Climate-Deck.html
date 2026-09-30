@@ -234,6 +234,32 @@ figure { margin: 0; }
 .chart-tall { max-width: 460px; }
 figcaption { font-size: 0.78rem; color: var(--ink-3); margin-top: 0.6rem; }
 svg { display: block; max-width: 100%; height: auto; }
+.factband {
+  display: grid;
+  gap: 1.4rem;
+  margin-top: 1.8rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--rule);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+.factband .n { font-family: var(--f-display); font-size: 1.25rem; font-weight: 700; color: var(--green); display: block; }
+.factband .n.t { color: var(--turmeric); }
+.factband .n.i { color: var(--indigo); }
+.factband .n.p { color: var(--plum); }
+.factband p { font-size: 0.86rem; color: var(--ink-2); margin: 0.25rem 0 0; }
+
+.steplane { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 1.4rem; margin-top: 1.6rem; }
+.steplane .dot {
+  width: 2rem; height: 2rem; border-radius: 999px; background: var(--green);
+  color: #fff; font-family: var(--f-mono); font-size: 0.85rem; font-weight: 600;
+  display: grid; place-items: center; margin-bottom: 0.7rem;
+}
+.steplane h3 { margin-bottom: 0.35rem; }
+.steplane p { font-size: 0.88rem; color: var(--ink-2); }
+.steplane .when { font-family: var(--f-mono); font-size: 0.72rem; color: var(--green); font-weight: 600; }
+@media (max-width: 860px) { .steplane { grid-template-columns: 1fr; } }
+@media print { .steplane { grid-template-columns: repeat(4, minmax(0,1fr)) !important; } .factband { grid-template-columns: repeat(3, minmax(0,1fr)) !important; margin-top: 1rem; } .factband .n { font-size: 1rem; } .factband p { font-size: 8pt; } }
+
 .src { font-size: 0.75rem; color: var(--ink-3); margin-top: 1.6rem; line-height: 1.6; max-width: 110ch; }
 .src a { color: var(--ink-3); }
 
@@ -341,6 +367,13 @@ a { color: var(--green); }
       </p>
     </div>
   </div>
+
+      <div class="factband">
+        <div><span class="n">0.38 ha</span><p>Average marginal holding nationally — decisions are made at this scale.</p></div>
+        <div><span class="n t">68.5%</span><p>Of farm households are marginal, under one hectare.</p></div>
+        <div><span class="n i">5 states</span><p>UP, Bihar, MP, Maharashtra and Andhra hold more than half of them.</p></div>
+        <div><span class="n p">24%</span><p>Of cultivable land, worked by those 68.5% of households.</p></div>
+      </div>
   <span class="slide-no">02</span>
 </section>
 
@@ -408,6 +441,12 @@ a { color: var(--green); }
       <div class="card"><h3>States cannot share models</h3><p>Every state rebuilds its own crop dataset and risk logic. Nothing is interoperable.</p></div>
     </div>
   </div>
+
+      <div class="factband">
+        <div><span class="n">The pattern</span><p>Each product owns one layer well and hands the farmer the integration problem.</p></div>
+        <div><span class="n t">The cost</span><p>Six apps, six logins — and still no answer for this field, this week.</p></div>
+        <div><span class="n i">The opening</span><p>Nobody is competing on the join between the layers.</p></div>
+      </div>
   <span class="slide-no">04</span>
 </section>
 
@@ -445,6 +484,12 @@ a { color: var(--green); }
       </div>
     </div>
   </div>
+
+      <div class="factband">
+        <div><span class="n">Deterministic first</span><p>The score is arithmetic over five named weights — reproducible and auditable.</p></div>
+        <div><span class="n t">Gemini second</span><p>The model narrates the computed numbers. It cannot change a score.</p></div>
+        <div><span class="n i">Farmer last</span><p>Plain language, four languages, every assumption written beneath the number.</p></div>
+      </div>
   <span class="slide-no">05</span>
 </section>
 
@@ -689,6 +734,12 @@ a { color: var(--green); }
       OpenStreetMap reverse geocoding · Sentinel-2 via Earth Engine.
     </p>
   </div>
+
+      <div class="factband">
+        <div><span class="n">Degrades honestly</span><p>No Gemini key means a labelled rule-based advisory, not a silent fallback.</p></div>
+        <div><span class="n t">No key on the box</span><p>Vertex AI uses the Cloud Run service account's IAM identity.</p></div>
+        <div><span class="n i">Costs bounded</span><p>Redis caches weather, NDVI and translations across neighbouring farms.</p></div>
+      </div>
   <span class="slide-no">09</span>
 </section>
 
@@ -761,6 +812,12 @@ a { color: var(--green); }
       </div>
     </div>
   </div>
+
+      <div class="factband">
+        <div><span class="n">Verified against Atlas</span><p>Farmer → farm → risk end to end on a live cluster with 100 seeded farms.</p></div>
+        <div><span class="n t">Verified against live APIs</span><p>Open-Meteo, OpenStreetMap and Agmarknet all called for real.</p></div>
+        <div><span class="n i">Gated on every change</span><p>ruff, pytest, tsc, eslint, next build — all five green or the phase is not done.</p></div>
+      </div>
   <span class="slide-no">11</span>
 </section>
 
@@ -788,7 +845,158 @@ a { color: var(--green); }
   <span class="slide-no">12</span>
 </section>
 
-<!-- 13 ─ close ────────────────────────────────────────────────────────── -->
+
+<!-- 13 ─ why now ──────────────────────────────────────────────────────── -->
+<section class="slide">
+  <div class="inner">
+    <p class="eyebrow">Timing</p>
+    <h2>Why this is buildable now and was not three years ago.</h2>
+    <p class="lede">Three curves crossed. Satellite analysis became free at the field scale,
+      multimodal reasoning became an API call, and the farmer's device became capable of both.</p>
+    <div class="grid g3">
+      <div class="card"><p class="pill">Then: enterprise only</p><h3 style="margin-top:0.6rem">Satellite went free and granular</h3><p>Sentinel-2 revisits every five days at 10 m, and Earth Engine reduces it over a single field on demand. What needed an agronomy contract in 2020 is one API call per farm.</p></div>
+      <div class="card"><p class="pill">Then: bespoke models</p><h3 style="margin-top:0.6rem">Multimodal reasoning became callable</h3><p>A leaf photograph plus structured farm context in one prompt, answered in Hindi or Gujarati, is a 2024-onwards capability. Before that it meant a trained model per crop per language.</p></div>
+      <div class="card"><p class="pill">Then: feature phones</p><h3 style="margin-top:0.6rem">The device caught up</h3><p>Rural smartphone penetration now carries a camera good enough for lesion detection and a browser capable of speech input — which is what makes a farmer-facing product possible at all.</p></div>
+    </div>
+    <div class="factband">
+      <div><span class="n">$974M → $2.52B</span><p>Indian agritech market, 2025 to 2034, at 10.59% CAGR.</p></div>
+      <div><span class="n t">$241M / 60 rounds</span><p>Raised across Indian agritech in 2025 alone.</p></div>
+      <div><span class="n i">86.1%</span><p>Of holdings are under two hectares — the segment every enterprise platform prices out.</p></div>
+    </div>
+  </div>
+  <span class="slide-no">13</span>
+</section>
+
+<!-- 14 ─ in the app ───────────────────────────────────────────────────── -->
+<section class="slide" style="background:var(--surface-sunk)">
+  <div class="inner">
+    <p class="eyebrow">The product</p>
+    <h2>Ten screens. One thread running through them.</h2>
+    <p class="lede">Every screen answers a question the previous one raised, and every number carries a label saying where it came from.</p>
+    <div class="scroll-x">
+      <table>
+        <thead><tr><th>Screen</th><th>What it does</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Register</strong></td><td>Name, language, GPS. Reverse geocoding fills district and state so the farmer types neither.</td><td class="num">4 languages</td></tr>
+          <tr><td><strong>My Farm</strong></td><td>The risk score as a soil core, plus a written note for every factor that had no evidence.</td><td class="num">Home screen</td></tr>
+          <tr><td><strong>Weather</strong></td><td>Current conditions and seven days, with source and fetch time always visible.</td><td class="num">Open-Meteo</td></tr>
+          <tr><td><strong>Scan</strong></td><td>A leaf photo. Names the 14 crops it can identify before you shoot, and warns if yours is not among them.</td><td class="num">160–260 ms</td></tr>
+          <tr><td><strong>Crops</strong></td><td>Ranked suitability with a per-criterion breakdown; unknowns read “not assessed”, never as failures.</td><td class="num">10 crops</td></tr>
+          <tr><td><strong>Ask</strong></td><td>Voice or text, grounded only in this farm's record. Returns “I cannot answer that” rather than guessing.</td><td class="num">Web Speech</td></tr>
+          <tr><td><strong>Districts</strong></td><td>State roll-up, risk map and AI intervention priorities for an agriculture officer.</td><td class="num">For the officer</td></tr>
+          <tr><td><strong>Mandi &amp; Schemes</strong></td><td>Agmarknet prices for the crop actually grown, and the subsidy directory in the chosen language.</td><td class="num">data.gov.in</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <span class="slide-no">14</span>
+</section>
+
+<!-- 15 ─ architecture ─────────────────────────────────────────────────── -->
+<section class="slide">
+  <div class="inner">
+    <p class="eyebrow">Architecture · data flow</p>
+    <h2>Three services, one contract.</h2>
+    <p class="lede">The web app never talks to a model or a satellite directly. Everything crosses one
+      typed API, which is what makes the provenance guarantee enforceable rather than aspirational.</p>
+    <div class="grid g3">
+      <div class="card" style="border-color:var(--green)"><p class="pill">apps/web</p><h3 style="margin-top:0.6rem">Next.js 15</h3><p>10 routes, React 19, server components, 4 languages, light and dark.</p></div>
+      <div class="card" style="border-color:var(--indigo)"><p class="pill i">services/api</p><h3 style="margin-top:0.6rem">FastAPI · domain</h3><p>26 endpoints. Risk, suitability and district aggregation are pure functions with no I/O — which is why they are testable.</p></div>
+      <div class="card" style="border-color:var(--turmeric)"><p class="pill t">services/inference</p><h3 style="margin-top:0.6rem">FastAPI · vision</h3><p>MobileNetV2 plus an HSV leaf detector; escalates to Gemini below 0.70 confidence.</p></div>
+    </div>
+    <div class="factband">
+      <div><span class="n">MongoDB Atlas</span><p>System of record. A connection outage degrades stored-data routes to 503 and leaves the stateless ones serving.</p></div>
+      <div><span class="n t">Gemini · Vertex AI</span><p>Advisory, chat, interventions, crop explanations and the vision fallback. Structured output only.</p></div>
+      <div><span class="n i">Earth Engine</span><p>Sentinel-2 NDVI per field, with a seeded demo provider behind the same interface, labelled <span class="mono">is_live: false</span>.</p></div>
+      <div><span class="n p">BigQuery · Pub/Sub · Redis · GCS</span><p>Risk time series, async NDVI refresh, cached reads, and leaf photos kept as diagnostic evidence.</p></div>
+    </div>
+  </div>
+  <span class="slide-no">15</span>
+</section>
+
+<!-- 16 ─ adoption ─────────────────────────────────────────────────────── -->
+<section class="slide" style="background:var(--surface-sunk)">
+  <div class="inner">
+    <p class="eyebrow">Adoption</p>
+    <h2>The officer is the distribution channel.</h2>
+    <p class="lede">A farmer-facing app with no distribution reaches nobody. The district view is not a
+      second product — it is how the first one gets adopted.</p>
+    <div class="steplane">
+      <div><div class="dot">1</div><h3>One district</h3><p>Seed one district's farms with an extension office. The officer already has the relationships an app does not.</p><p class="when">Weeks 1–4</p></div>
+      <div><div class="dot">2</div><h3>The officer's own view</h3><p>District risk hotspots and intervention priorities give the officer a reason to keep the system current.</p><p class="when">Weeks 2–8</p></div>
+      <div><div class="dot">3</div><h3>Farmers pulled in</h3><p>Farms the officer registers become farmer accounts. Adoption follows an existing trust relationship.</p><p class="when">Weeks 4–12</p></div>
+      <div><div class="dot">4</div><h3>The state adopts the model</h3><p>Published crop and risk schema let a second district — then a second state — run its own node against the same standard.</p><p class="when">Quarter 2+</p></div>
+    </div>
+    <div class="factband">
+      <div><span class="n">Zero hardware</span><p>Nothing to install in a field — what separates this from IoT precision ag and its per-farm capital cost.</p></div>
+      <div><span class="n t">Zero sign-up</span><p>No account required to see a field. Authentication is deliberately out of scope on the farmer path.</p></div>
+      <div><span class="n i">Runs degraded</span><p>Every integration has a labelled fallback, so a district with no Gemini budget still gets the computed score.</p></div>
+    </div>
+  </div>
+  <span class="slide-no">16</span>
+</section>
+
+<!-- 17 ─ impact model ─────────────────────────────────────────────────── -->
+<section class="slide">
+  <div class="inner">
+    <p class="eyebrow">Impact · modelled, not measured</p>
+    <h2>What one district would be worth.</h2>
+    <p class="lede">The arithmetic below is a model built from the sourced figures on slide 3, not a
+      result. It is shown so the assumptions can be argued with.</p>
+    <div class="grid g4">
+      <div class="stat"><span class="n">2,340</span><span class="l">farms in a district of Alwar's size</span></div>
+      <div class="stat t"><span class="n">15–25%</span><span class="l">of yield currently lost to pests and disease</span></div>
+      <div class="stat i"><span class="n">30–60%</span><span class="l">reduction where guidance arrives early and accurately</span></div>
+      <div class="stat p"><span class="n">4.5–15%</span><span class="l">of yield recoverable, as the product of those ranges</span></div>
+    </div>
+    <div class="grid g2" style="margin-top:1.8rem">
+      <div>
+        <h3 style="margin-bottom:0.6rem">How to read this</h3>
+        <ul class="check">
+          <li>The 30–60% figure describes farmers who received early accurate guidance — it is not a claim about this product.</li>
+          <li>Reaching it requires the advisory to be both timely and correct, which is what the roadmap's remaining items address.</li>
+          <li>No revenue model is presented. A public good funded by a state department has different economics to a startup, and pretending otherwise would be dishonest.</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="margin-bottom:0.6rem">What would have to be true</h3>
+        <ul class="check">
+          <li>A disease model trained on Indian staples — wheat, rice, mustard, chickpea — which the current checkpoint has never seen.</li>
+          <li>Advisory quality validated against agronomists, not against a demo.</li>
+          <li>Enough farms per district to clear the k-anonymity floor before any aggregate is published.</li>
+          <li>An extension officer willing to keep one district's records current.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <span class="slide-no">17</span>
+</section>
+
+<!-- 18 ─ risks ────────────────────────────────────────────────────────── -->
+<section class="slide" style="background:var(--surface-sunk)">
+  <div class="inner">
+    <p class="eyebrow">Risks</p>
+    <h2>What would break this, and what we did about it.</h2>
+    <p class="lede">Every one of these is a real failure mode. Four already happened during the build
+      and were fixed; the rest are open.</p>
+    <div class="scroll-x">
+      <table>
+        <thead><tr><th>Risk</th><th>Why it matters</th><th>Response</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Wrong advice at scale</strong></td><td>Agricultural advice moves money. A confident error compounds across a district.</td><td>Deterministic scoring; Gemini cannot alter a number; every assumption written out.</td><td class="num">Mitigated</td></tr>
+          <tr><td><strong>A model outside its training set</strong></td><td>The disease checkpoint covers 14 crops; nine of the ten we recommend are not among them.</td><td>The scanner names its coverage before you photograph and warns when your crop is outside it.</td><td class="num">Mitigated</td></tr>
+          <tr><td><strong>Silent data degradation</strong></td><td>A dead weather API once read as “0 °C, no rain” and quietly changed the score.</td><td>Unavailable factors are dropped and the remaining weights renormalised, with a note shown.</td><td class="num">Fixed</td></tr>
+          <tr><td><strong>Re-identification via aggregates</strong></td><td>A district with one farm publishes “1 farm, CRITICAL, Wheat” — which identifies a person.</td><td>k-anonymity floor of ten farms before any district appears in a federation response, enforced by test.</td><td class="num">Designed</td></tr>
+          <tr><td><strong>Connectivity in the field</strong></td><td>The advisory is useless if it needs a live connection at the moment of decision.</td><td>Open — offline caching and a PWA shell are not yet built.</td><td class="num" style="color:var(--turmeric)">Open</td></tr>
+          <tr><td><strong>Adoption without the officer</strong></td><td>A farmer-facing app with no distribution reaches nobody.</td><td>Officer-first rollout, see slide 16. Unproven.</td><td class="num" style="color:var(--turmeric)">Open</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <span class="slide-no">18</span>
+</section>
+
+<!-- 19 ─ close ────────────────────────────────────────────────────────── -->
 <section class="slide">
   <div class="inner">
     <p class="eyebrow">AgriMitra Climate</p>
@@ -814,7 +1022,7 @@ a { color: var(--green); }
       our reading of each product's primary positioning.
     </p>
   </div>
-  <span class="slide-no">13</span>
+  <span class="slide-no">19</span>
 </section>
 
 </div>
