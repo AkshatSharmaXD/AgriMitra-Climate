@@ -33,7 +33,7 @@ const SCHEME_SLIDES: SchemeSlide[] = [
     highlight: "100% Direct Benefit Transfer (DBT) in 3 equal installments.",
     gradient: "from-blue-600 via-indigo-600 to-purple-700",
     icon: IndianRupee,
-    link: "/schemes",
+    link: "https://pmkisan.gov.in/",
   },
   {
     id: "pmfby",
@@ -44,7 +44,7 @@ const SCHEME_SLIDES: SchemeSlide[] = [
     highlight: "Ultra-low premium rates (1.5% for Rabi, 2% for Kharif crops).",
     gradient: "from-amber-500 via-orange-600 to-red-600",
     icon: ShieldCheck,
-    link: "/schemes",
+    link: "https://pmfby.gov.in/",
   },
   {
     id: "soil-health",
@@ -55,7 +55,7 @@ const SCHEME_SLIDES: SchemeSlide[] = [
     highlight: "Reduces input costs while improving crop yields sustainably.",
     gradient: "from-lime-500 via-emerald-600 to-teal-700",
     icon: Sprout,
-    link: "/schemes",
+    link: "https://soilhealth.dac.gov.in/",
   },
   {
     id: "pmksy",
@@ -66,7 +66,7 @@ const SCHEME_SLIDES: SchemeSlide[] = [
     highlight: "'Per Drop More Crop' initiative boosts water efficiency by 50%.",
     gradient: "from-cyan-500 via-blue-600 to-indigo-700",
     icon: Droplets,
-    link: "/schemes",
+    link: "https://pmksy.gov.in/",
   },
 ];
 
@@ -139,13 +139,15 @@ export function SchemesSlideshow() {
 
           {/* AD CTA */}
           <div className="pt-2">
-            <Link
+            <a
               href={activeSlide.link}
+              target="_blank"
+              rel="noopener noreferrer"
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 py-3 text-sm font-bold text-white shadow-md transition-all hover:bg-accent-hover hover:shadow-lg active:scale-[0.98]"
             >
               Check Eligibility Now
               <ExternalLink className="size-4" />
-            </Link>
+            </a>
           </div>
         </div>
       </div>

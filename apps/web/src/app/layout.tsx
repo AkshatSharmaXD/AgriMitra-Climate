@@ -1,8 +1,22 @@
 import type { Metadata, Viewport } from "next";
 
+import { Inter, Outfit } from "next/font/google";
+
 import { AppShell } from "@/components/layout/app-shell";
 import { Providers } from "@/components/providers";
 import "@/styles/globals.css";
+
+const outfit = Outfit({
+  subsets: ["latin"],
+  variable: "--font-outfit",
+  display: "swap",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -28,8 +42,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body>
+    <html lang="en" suppressHydrationWarning className={`${outfit.variable} ${inter.variable}`}>
+      <body className="font-sans antialiased text-content bg-surface selection:bg-accent-soft selection:text-content">
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-accent focus:px-4 focus:py-2 focus:text-accent-content"

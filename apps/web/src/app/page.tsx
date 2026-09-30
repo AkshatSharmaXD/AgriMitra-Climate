@@ -4,18 +4,15 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
-import { Droplets, IndianRupee, Leaf, MapPin, ScrollText, Sprout } from "lucide-react";
+import { Droplets, IndianRupee, Leaf, MapPin, ScrollText, Sprout, CloudSun, Bug, BarChart3, Bot } from "lucide-react";
 
 import { AgriNews } from "@/components/agri-news";
 import { RiskStratum } from "@/components/charts/risk-stratum";
-import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader } from "@/components/ui/card";
-import { ProvenanceBadge } from "@/components/ui/provenance-badge";
-import { EmptyState, ErrorState, Skeleton } from "@/components/ui/states";
 import { api } from "@/lib/api";
 import { useActiveFarmId } from "@/lib/active-farm";
 import { RISK_LABEL, RISK_TEXT, formatDay, ndviColor, weatherLabel } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 const COMPONENT_LABELS: Record<string, string> = {
   water_stress: "Water",
@@ -24,6 +21,8 @@ const COMPONENT_LABELS: Record<string, string> = {
   rainfall_risk: "Rainfall",
   vegetation_risk: "Vegetation",
 };
+
+// Animation variants removed for stability
 
 export default function FarmDashboardPage() {
   const router = useRouter();
@@ -61,10 +60,11 @@ export default function FarmDashboardPage() {
 
   if (!ready || (farmId && farm.isPending)) {
     return (
-      <div className="space-y-4 pt-8">
-        <Skeleton className="h-8 w-52" />
-        <Skeleton className="h-64 w-full" />
-        <Skeleton className="h-40 w-full" />
+      <div className="mx-auto max-w-[1400px] w-full pt-12 pb-12 px-4 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4 text-white">
+          <Sprout className="size-12 animate-pulse" />
+          <p className="font-bold text-lg">Loading your farm...</p>
+        </div>
       </div>
     );
   }
@@ -73,235 +73,212 @@ export default function FarmDashboardPage() {
 
   if (farm.isError) {
     return (
-      <ErrorState
-        title="Could not load your farm"
-        detail={(farm.error as Error).message}
-        action={
-          <Button size="md" variant="secondary" onClick={() => farm.refetch()}>
-            Try again
-          </Button>
-        }
-      />
+      <div className="mx-auto max-w-[1400px] w-full pt-12 pb-12 px-4">
+        <div className="bg-red-100 border-2 border-red-400 rounded-2xl p-8 text-center">
+          <h2 className="text-xl font-black text-red-800 mb-2">Could not load your farm</h2>
+          <p className="text-red-700 text-sm mb-4">{(farm.error as Error).message}</p>
+          <button onClick={() => farm.refetch()} className="bg-red-600 text-white px-6 py-2 rounded-xl font-bold">Try again</button>
+        </div>
+      </div>
     );
   }
 
   const f = farm.data!;
 
   return (
-    <div className="space-y-8 animate-fade-in pb-12">
-      <div className="space-y-2">
-        <PageHeader
-          title={`${f.crop} · ${f.area_acres} acres`}
-          provenance={f.is_demo ? <ProvenanceBadge provenance="demo" /> : undefined}
-        />
-        <p className="flex items-center gap-2 type-callout text-content-secondary font-medium tracking-wide">
-          <MapPin aria-hidden className="size-4 text-accent" />
-          {f.district}, {f.state} <span className="opacity-50">•</span> {f.soil.type} soil <span className="opacity-50">•</span> {f.irrigation}
-        </p>
+    <div 
+      className="mx-auto max-w-[1400px] w-full pt-8 pb-12 px-4 font-sans space-y-8"
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+    >
+      {/* Farm Header */}
+      <div variants={itemVariants} className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-3xl font-black text-white">🌾 {f.crop} · {f.area_acres} acres</h1>
+            {f.is_demo && <span className="bg-yellow-400 text-black px-3 py-1 rounded-full text-[10px] font-black">DEMO</span>}
+          </div>
+          <p className="flex items-center gap-2 text-white/80 text-sm font-medium">
+            <MapPin className="size-4 text-yellow-300" />
+            {f.district}, {f.state} <span className="opacity-50">•</span> {f.soil.type} soil <span className="opacity-50">•</span> {f.irrigation}
+          </p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {/* --- The headline: risk, and the working behind it -------------------- */}
-        <div className="md:col-span-2 xl:col-span-3">
-      <Card>
-        {risk.isPending ? (
-          <Skeleton className="h-56 w-full" />
-        ) : risk.isError ? (
-          <ErrorState
-            title="Risk could not be calculated"
-            detail={(risk.error as Error).message}
-            action={
-              <Button size="md" variant="secondary" onClick={() => risk.refetch()}>
-                Retry
-              </Button>
-            }
-          />
-        ) : (
-          <>
-            <CardHeader
-              title="Farm risk"
-              description="Computed from your farm record and the signals below."
-            />
-            <div className="mb-5 flex items-baseline gap-3">
-              <span className="type-display type-numeric text-content">
-                {risk.data!.overall_score}
-              </span>
-              <span className="type-body text-content-tertiary">/ 100</span>
-              <span
-                className={`ml-auto type-heading font-semibold ${RISK_TEXT[risk.data!.level]}`}
-              >
-                {RISK_LABEL[risk.data!.level]}
-              </span>
+      {/* Quick Action Cards */}
+      <div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { href: `/advisory?farm=${farmId}`, label: "AI Advisory", icon: Sprout, color: "bg-[#2e7d32]" },
+          { href: `/crops?farm=${farmId}`, label: "Crop Suitability", icon: Droplets, color: "bg-[#00b4d8]" },
+          { href: "/scan", label: "Crop Scanner", icon: Bug, color: "bg-[#9d4edd]" },
+          { href: "/assistant", label: "AI Chat", icon: Bot, color: "bg-[#ff4d6d]" },
+        ].map((action) => (
+          <Link key={action.href} href={action.href} className="bg-white rounded-2xl shadow-lg p-5 flex flex-col items-center text-center hover:-translate-y-1 transition-all group">
+            <div className={cn("size-12 rounded-full text-white flex items-center justify-center mb-3 group-hover:scale-110 transition-transform", action.color)}>
+              <action.icon className="size-6" />
             </div>
-
-            <RiskStratum
-              components={Object.entries(risk.data!.weights).map(([key, weight]) => ({
-                key,
-                label: COMPONENT_LABELS[key] ?? key,
-                score: (risk.data as unknown as Record<string, number>)[key] ?? 0,
-                weight,
-              }))}
-            />
-
-            {risk.data!.assumptions.length > 0 ? (
-              <div className="mt-5 border-t border-hairline pt-4">
-                <h3 className="type-callout font-semibold text-content">
-                  What this score assumed
-                </h3>
-                <ul className="mt-2 space-y-2">
-                  {risk.data!.assumptions.map((note) => (
-                    <li key={note} className="flex gap-2.5 type-callout text-content-secondary">
-                      <span
-                        aria-hidden
-                        className="mt-2 size-1.5 shrink-0 rounded-full bg-content-tertiary"
-                      />
-                      {note}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-          </>
-        )}
-      </Card>
+            <span className="font-bold text-gray-800 text-sm">{action.label}</span>
+          </Link>
+        ))}
       </div>
 
-      {/* --- Weather. Degraded shows an error, never zeros (audit B5) --------- */}
-      <Card>
-        <CardHeader
-          title="Next 7 days"
-          action={
-            weather.data && !weather.data.degraded ? (
-              <ProvenanceBadge provenance="live" label="Open-Meteo" />
-            ) : null
-          }
-        />
-        {weather.isPending ? (
-          <Skeleton className="h-24 w-full" />
-        ) : weather.isError || weather.data?.degraded ? (
-          <ErrorState
-            variant="offline"
-            title="Weather service did not respond"
-            detail="Heat and rainfall are left out of the risk score rather than assumed. Nothing on this screen is a guess."
-            action={
-              <Button size="md" variant="secondary" onClick={() => weather.refetch()}>
-                Retry
-              </Button>
-            }
-          />
-        ) : (
-          <>
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {weather.data!.forecast.map((day) => (
-                <div
-                  key={day.date}
-                  className="min-w-[4.5rem] shrink-0 rounded-md border border-hairline p-2.5 text-center"
-                >
-                  <p className="type-caption text-content-secondary">{formatDay(day.date)}</p>
-                  <p className="type-callout type-numeric mt-1 font-semibold text-content">
-                    {Math.round(day.temp_max)}°
-                  </p>
-                  <p className="type-caption type-numeric text-content-tertiary">
-                    {Math.round(day.temp_min)}°
-                  </p>
-                  <p className="type-caption type-numeric mt-1 text-accent">
-                    {day.precipitation_mm.toFixed(1)}mm
-                  </p>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Risk Score Card */}
+        <div variants={itemVariants} className="lg:col-span-2">
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div className="bg-[#2e7d32] text-white p-5">
+              <h2 className="font-black text-lg">Farm Risk Score</h2>
+              <p className="text-white/70 text-xs">Computed from your farm record and live signals</p>
+            </div>
+            <div className="p-6">
+              {risk.isPending ? (
+                <div className="h-48 bg-gray-100 animate-pulse rounded-xl" />
+              ) : risk.isError ? (
+                <div className="bg-red-50 rounded-xl p-4">
+                  <p className="text-red-800 font-bold">Risk could not be calculated</p>
+                  <p className="text-red-600 text-sm mt-1">{(risk.error as Error).message}</p>
+                  <button onClick={() => risk.refetch()} className="mt-3 bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-bold">Retry</button>
                 </div>
-              ))}
-            </div>
-            {weather.data!.current ? (
-              <p className="mt-3 type-caption text-content-tertiary">
-                Now {Math.round(weather.data!.current.temperature_c)}°C ·{" "}
-                {weatherLabel(weather.data!.current.weather_code)} ·{" "}
-                {weather.data!.current.humidity_pct}% humidity
-              </p>
-            ) : null}
-          </>
-        )}
-      </Card>
+              ) : (
+                <>
+                  <div className="flex items-baseline gap-4 mb-6">
+                    <span className="text-5xl font-black text-gray-800">{risk.data!.overall_score}</span>
+                    <span className="text-gray-400 text-lg">/100</span>
+                    <span className={cn("ml-auto text-xl font-black px-4 py-1.5 rounded-full", 
+                      risk.data!.level === "LOW" && "bg-green-100 text-green-800",
+                      risk.data!.level === "MEDIUM" && "bg-yellow-100 text-yellow-800",
+                      risk.data!.level === "HIGH" && "bg-orange-100 text-orange-800",
+                      risk.data!.level === "CRITICAL" && "bg-red-100 text-red-800"
+                    )}>
+                      {RISK_LABEL[risk.data!.level]}
+                    </span>
+                  </div>
 
-      {/* --- NDVI, badged by is_live (audit A1, A8) --------------------------- */}
-      <Card>
-        <CardHeader
-          title="Vegetation"
-          action={
-            satellite.data ? (
-              <ProvenanceBadge
-                provenance={satellite.data.is_live ? "live" : "demo"}
-                label={satellite.data.is_live ? "Sentinel-2" : "Demo dataset"}
-                detail={satellite.data.captured_on}
-              />
-            ) : null
-          }
-        />
-        {satellite.isPending ? (
-          <Skeleton className="h-20 w-full" />
-        ) : satellite.isError ? (
-          <EmptyState
-            icon={Leaf}
-            title="No vegetation reading"
-            description="Satellite coverage is not available for this location yet."
-          />
-        ) : (
-          <div className="flex items-center gap-4">
-            <div
-              aria-hidden
-              className="size-14 shrink-0 rounded-md"
-              style={{ background: ndviColor(satellite.data!.ndvi) }}
-            />
-            <div>
-              <p className="type-title type-numeric text-content">
-                {satellite.data!.ndvi.toFixed(2)}
-              </p>
-              <p className="type-callout text-content-secondary">
-                NDVI · {satellite.data!.vegetation_status}
-              </p>
+                  <RiskStratum
+                    components={Object.entries(risk.data!.weights).map(([key, weight]) => ({
+                      key,
+                      label: COMPONENT_LABELS[key] ?? key,
+                      score: (risk.data as unknown as Record<string, number>)[key] ?? 0,
+                      weight,
+                    }))}
+                  />
+
+                  {risk.data!.assumptions.length > 0 && (
+                    <div className="mt-5 border-t border-gray-200 pt-4">
+                      <h3 className="font-bold text-gray-700 text-sm mb-2">Assumptions</h3>
+                      <ul className="space-y-1">
+                        {risk.data!.assumptions.map((note) => (
+                          <li key={note} className="flex gap-2 text-xs text-gray-500">
+                            <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-gray-300" />
+                            {note}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
-        )}
-      </Card>
+        </div>
+
+        {/* Weather Card */}
+        <div variants={itemVariants}>
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden h-full">
+            <div className="bg-[#023e8a] text-white p-5">
+              <div className="flex items-center justify-between">
+                <h2 className="font-black text-lg flex items-center gap-2">
+                  <CloudSun className="size-5" /> Next 7 Days
+                </h2>
+                {weather.data && !weather.data.degraded && (
+                  <span className="bg-green-400 text-black px-2 py-0.5 rounded-full text-[10px] font-black">LIVE</span>
+                )}
+              </div>
+            </div>
+            <div className="p-5">
+              {weather.isPending ? (
+                <div className="h-32 bg-gray-100 animate-pulse rounded-xl" />
+              ) : weather.isError || weather.data?.degraded ? (
+                <div className="bg-yellow-50 rounded-xl p-4 text-center">
+                  <CloudSun className="size-8 text-yellow-400 mx-auto mb-2" />
+                  <p className="text-yellow-800 font-bold text-sm">Weather unavailable</p>
+                  <button onClick={() => weather.refetch()} className="mt-2 bg-yellow-500 text-black px-4 py-1.5 rounded-lg text-xs font-bold">Retry</button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex gap-2 overflow-x-auto pb-1">
+                    {weather.data!.forecast.map((day) => (
+                      <div key={day.date} className="min-w-[4rem] shrink-0 rounded-xl border border-gray-200 p-2.5 text-center hover:bg-green-50 transition-colors">
+                        <p className="text-[10px] text-gray-500 font-medium">{formatDay(day.date)}</p>
+                        <p className="text-sm font-black text-gray-800 mt-1">{Math.round(day.temp_max)}°</p>
+                        <p className="text-[10px] text-gray-400">{Math.round(day.temp_min)}°</p>
+                        <p className="text-[10px] font-bold text-blue-600 mt-1">{day.precipitation_mm.toFixed(1)}mm</p>
+                      </div>
+                    ))}
+                  </div>
+                  {weather.data!.current && (
+                    <p className="mt-3 text-xs text-gray-500 bg-gray-50 rounded-lg p-2 text-center">
+                      Now <strong>{Math.round(weather.data!.current.temperature_c)}°C</strong> · {weatherLabel(weather.data!.current.weather_code)} · {weather.data!.current.humidity_pct}% humidity
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Reference screens, useful on their own and reachable without a farm. */}
-      <div className="grid grid-cols-2 gap-3 pt-6 border-t border-hairline/50">
-        <Link
-          href="/market"
-          className="flex min-h-tap items-center gap-3 rounded-md border border-hairline bg-surface-raised p-4 active:scale-[0.99]"
-        >
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent">
-            <IndianRupee aria-hidden className="size-5" />
-          </span>
-          <span className="type-callout font-medium text-content">Mandi prices</span>
+      {/* Vegetation + Quick Links Row */}
+      <div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* NDVI Card */}
+        <div className="bg-white rounded-2xl shadow-lg p-6">
+          <h3 className="font-black text-gray-800 mb-3 flex items-center gap-2">
+            <Leaf className="size-5 text-green-600" /> Vegetation Index
+          </h3>
+          {satellite.isPending ? (
+            <div className="h-16 bg-gray-100 animate-pulse rounded-xl" />
+          ) : satellite.isError ? (
+            <p className="text-gray-400 text-sm">No satellite data available</p>
+          ) : (
+            <div className="flex items-center gap-4">
+              <div className="size-14 shrink-0 rounded-xl shadow-inner" style={{ background: ndviColor(satellite.data!.ndvi) }} />
+              <div>
+                <p className="text-3xl font-black text-gray-800">{satellite.data!.ndvi.toFixed(2)}</p>
+                <p className="text-xs text-gray-500">{satellite.data!.vegetation_status}</p>
+                {satellite.data!.is_live && <span className="text-[10px] text-green-600 font-bold">Sentinel-2</span>}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Mandi Prices Link */}
+        <Link href="/market" className="bg-white rounded-2xl shadow-lg p-6 flex items-center gap-4 hover:-translate-y-1 transition-all group">
+          <div className="size-14 rounded-full bg-[#f4a261] text-white flex items-center justify-center group-hover:scale-110 transition-transform">
+            <IndianRupee className="size-7" />
+          </div>
+          <div>
+            <p className="font-black text-gray-800 text-lg">Mandi Prices</p>
+            <p className="text-xs text-gray-500">Live market rates for crops</p>
+          </div>
         </Link>
-        <Link
-          href="/schemes"
-          className="flex min-h-tap items-center gap-3 rounded-md border border-hairline bg-surface-raised p-4 active:scale-[0.99]"
-        >
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent">
-            <ScrollText aria-hidden className="size-5" />
-          </span>
-          <span className="type-callout font-medium text-content">Schemes</span>
+
+        {/* Schemes Link */}
+        <Link href="/schemes" className="bg-white rounded-2xl shadow-lg p-6 flex items-center gap-4 hover:-translate-y-1 transition-all group">
+          <div className="size-14 rounded-full bg-[#9d4edd] text-white flex items-center justify-center group-hover:scale-110 transition-transform">
+            <ScrollText className="size-7" />
+          </div>
+          <div>
+            <p className="font-black text-gray-800 text-lg">Govt Schemes</p>
+            <p className="text-xs text-gray-500">Subsidies & insurance programs</p>
+          </div>
         </Link>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Button asChild size="lg" className="h-16 text-lg rounded-2xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all bg-gradient-to-r from-accent to-accent-hover" block>
-          <Link href={`/advisory?farm=${farmId}`}>
-            <Sprout aria-hidden className="size-6 mr-2" />
-            Get AI Advisory
-          </Link>
-        </Button>
-        <Button asChild size="lg" variant="secondary" className="h-16 text-lg rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-1 transition-all border-accent/20 bg-white/50 backdrop-blur-md" block>
-          <Link href={`/crops?farm=${farmId}`}>
-            <Droplets aria-hidden className="size-6 mr-2 text-accent" />
-            <span className="text-content">Crop Suitability</span>
-          </Link>
-        </Button>
+      {/* Agriculture News */}
+      <div variants={itemVariants}>
+        <AgriNews />
       </div>
-
-      {/* Headlines last: useful context, but never above the farmer's own field. */}
-      <AgriNews />
     </div>
   );
 }

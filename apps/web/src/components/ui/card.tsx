@@ -8,12 +8,12 @@ export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElemen
   return (
     <section
       className={cn(
-        "relative overflow-hidden rounded-2xl border border-hairline bg-surface-raised/80 p-6 shadow-card backdrop-blur-xl transition-all duration-300 ease-out-quint hover:-translate-y-1 hover:shadow-sheet group",
+        "relative overflow-hidden rounded-[24px] glass-card p-7 transition-all duration-500 ease-out hover:-translate-y-1.5 hover:shadow-2xl hover:border-white/60 dark:hover:border-white/20 group",
         className,
       )}
       {...props}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent dark:from-white/5 opacity-0 transition-opacity duration-500 group-hover:opacity-100 pointer-events-none" />
       {props.children}
     </section>
   );

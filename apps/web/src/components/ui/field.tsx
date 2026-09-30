@@ -54,10 +54,10 @@ export const Input = React.forwardRef<
     ref={ref}
     aria-invalid={invalid || undefined}
     className={cn(
-      "min-h-tap w-full rounded-md border bg-surface-raised px-3.5 py-2.5 type-body text-content",
-      "placeholder:text-content-tertiary",
-      "transition-colors duration-100",
-      invalid ? "border-risk-high" : "border-hairline focus:border-accent",
+      "min-h-tap w-full rounded-xl border bg-white/50 dark:bg-black/20 px-4 py-3 type-body text-content shadow-sm",
+      "placeholder:text-content-tertiary focus:bg-white/80 dark:focus:bg-black/40",
+      "transition-all duration-200 outline-none",
+      invalid ? "border-risk-high ring-1 ring-risk-high/50" : "border-hairline/70 focus:border-accent focus:ring-1 focus:ring-accent/50 hover:border-hairline",
       className,
     )}
     {...props}
@@ -94,11 +94,11 @@ export function Segmented<T extends string>({
             aria-checked={selected}
             onClick={() => onChange(selected && allowClear ? null : option.value)}
             className={cn(
-              "min-h-tap rounded-md border px-4 py-2 type-callout font-medium",
-              "transition-colors duration-100 active:scale-[0.98]",
+              "min-h-tap rounded-xl border px-4 py-2 type-callout font-medium",
+              "transition-all duration-200 active:scale-[0.97]",
               selected
-                ? "border-accent bg-accent text-accent-content"
-                : "border-hairline bg-surface-raised text-content-secondary hover:bg-surface-sunken",
+                ? "border-accent bg-accent text-accent-content shadow-md shadow-accent/20"
+                : "border-hairline/70 bg-white/40 dark:bg-black/20 text-content-secondary hover:bg-white/80 dark:hover:bg-black/40 hover:text-content",
             )}
           >
             {option.label}
