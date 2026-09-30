@@ -106,7 +106,18 @@ export function SchemesSlideshow() {
     setCurrentIndex((prev) => (prev - 1 + SCHEME_SLIDES.length) % SCHEME_SLIDES.length);
   };
 
-  const activeSlide = SCHEME_SLIDES[currentIndex];
+  const activeSlide: SchemeSlide = SCHEME_SLIDES[currentIndex] || {
+    id: "default",
+    name: "PM-KISAN Samman Nidhi",
+    shortName: "PM-KISAN",
+    category: "Financial Support",
+    benefit: "₹6,000 / year income support directly to farmer bank accounts.",
+    highlight: "100% Direct Benefit Transfer (DBT) in 3 equal installments.",
+    gradient: "from-emerald-600 via-green-600 to-teal-700",
+    icon: IndianRupee,
+    link: "/schemes",
+  };
+  
   const IconComponent = activeSlide.icon;
 
   return (
