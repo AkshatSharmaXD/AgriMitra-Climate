@@ -3,15 +3,12 @@
 import * as React from "react";
 import Link from "next/link";
 import {
-  ChevronLeft,
-  ChevronRight,
   ShieldCheck,
   IndianRupee,
   Droplets,
   Sprout,
-  Sparkles,
   ExternalLink,
-  Award
+  Megaphone
 } from "lucide-react";
 
 interface SchemeSlide {
@@ -34,7 +31,7 @@ const SCHEME_SLIDES: SchemeSlide[] = [
     category: "Financial Support",
     benefit: "₹6,000 / year income support directly to farmer bank accounts.",
     highlight: "100% Direct Benefit Transfer (DBT) in 3 equal installments.",
-    gradient: "from-emerald-600 via-green-600 to-teal-700",
+    gradient: "from-blue-600 via-indigo-600 to-purple-700",
     icon: IndianRupee,
     link: "/schemes",
   },
@@ -45,7 +42,7 @@ const SCHEME_SLIDES: SchemeSlide[] = [
     category: "Crop Insurance",
     benefit: "Comprehensive insurance against weather, drought, & pest risks.",
     highlight: "Ultra-low premium rates (1.5% for Rabi, 2% for Kharif crops).",
-    gradient: "from-amber-600 via-orange-600 to-amber-700",
+    gradient: "from-amber-500 via-orange-600 to-red-600",
     icon: ShieldCheck,
     link: "/schemes",
   },
@@ -56,7 +53,7 @@ const SCHEME_SLIDES: SchemeSlide[] = [
     category: "Soil & Nutrient Advice",
     benefit: "Field-specific nutrient status & targeted fertilizer recommendations.",
     highlight: "Reduces input costs while improving crop yields sustainably.",
-    gradient: "from-lime-600 via-emerald-600 to-green-700",
+    gradient: "from-lime-500 via-emerald-600 to-teal-700",
     icon: Sprout,
     link: "/schemes",
   },
@@ -67,19 +64,8 @@ const SCHEME_SLIDES: SchemeSlide[] = [
     category: "Water & Irrigation",
     benefit: "Subsidies for micro-irrigation, drip systems, & rainwater harvesting.",
     highlight: "'Per Drop More Crop' initiative boosts water efficiency by 50%.",
-    gradient: "from-cyan-600 via-blue-600 to-teal-700",
+    gradient: "from-cyan-500 via-blue-600 to-indigo-700",
     icon: Droplets,
-    link: "/schemes",
-  },
-  {
-    id: "nmsa",
-    name: "Sustainable Agriculture Mission",
-    shortName: "NMSA Climate",
-    category: "Climate Resilience",
-    benefit: "Promotes climate-resilient farming, organic inputs, & soil conservation.",
-    highlight: "Adaptation strategies tailored for small and marginal landholdings.",
-    gradient: "from-emerald-700 via-teal-700 to-cyan-800",
-    icon: Sparkles,
     link: "/schemes",
   },
 ];
@@ -88,138 +74,93 @@ export function SchemesSlideshow() {
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [isPaused, setIsPaused] = React.useState(false);
 
-  // Auto-play slideshow every 4 seconds unless paused
   React.useEffect(() => {
     if (isPaused) return;
     const timer = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % SCHEME_SLIDES.length);
-    }, 4000);
-
+      setCurrentIndex((prev) => (prev + 1) % SCHEME_SLIDES.length);
+    }, 3500);
     return () => clearInterval(timer);
   }, [isPaused]);
 
-  const handleNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % SCHEME_SLIDES.length);
-  };
-
-  const handlePrev = () => {
-    setCurrentIndex((prev) => (prev - 1 + SCHEME_SLIDES.length) % SCHEME_SLIDES.length);
-  };
-
-  const activeSlide: SchemeSlide = SCHEME_SLIDES[currentIndex] || {
-    id: "default",
-    name: "PM-KISAN Samman Nidhi",
-    shortName: "PM-KISAN",
-    category: "Financial Support",
-    benefit: "₹6,000 / year income support directly to farmer bank accounts.",
-    highlight: "100% Direct Benefit Transfer (DBT) in 3 equal installments.",
-    gradient: "from-emerald-600 via-green-600 to-teal-700",
-    icon: IndianRupee,
-    link: "/schemes",
-  };
-  
+  const activeSlide = SCHEME_SLIDES[currentIndex] || SCHEME_SLIDES[0];
   const IconComponent = activeSlide.icon;
 
   return (
     <div
-      className="relative w-full max-w-lg mx-auto"
+      className="relative w-full max-w-lg mx-auto group"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Outer Card Wrapper */}
-      <div className="overflow-hidden rounded-2xl border border-hairline bg-surface-raised shadow-xl transition-all duration-300 hover:shadow-2xl">
-        {/* Slide Header Banner */}
-        <div className={`relative bg-gradient-to-r ${activeSlide.gradient} p-6 text-white transition-all duration-500`}>
-          <div className="flex items-center justify-between gap-3">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-semibold backdrop-blur-md">
-              <Award className="size-3.5" />
-              Government Scheme
+      {/* Decorative Glow */}
+      <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-accent via-emerald-400 to-accent opacity-25 blur-lg transition duration-1000 group-hover:opacity-50 group-hover:duration-200"></div>
+      
+      <div className="relative overflow-hidden rounded-2xl border-2 border-accent/20 bg-white dark:bg-slate-900 shadow-2xl transition-all duration-300">
+        {/* AD BADGE & HEADER */}
+        <div className={`relative bg-gradient-to-br ${activeSlide.gradient} p-5 text-white transition-all duration-500`}>
+          <div className="flex items-center justify-between">
+            <span className="inline-flex items-center gap-1 rounded bg-yellow-400 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-black shadow-sm">
+              <Megaphone className="size-3" />
+              Sponsored Ad
             </span>
-            <span className="text-xs font-medium text-white/80">
-              {currentIndex + 1} of {SCHEME_SLIDES.length}
+            <span className="text-[10px] font-bold uppercase tracking-wider text-white/80">
+              {currentIndex + 1} / {SCHEME_SLIDES.length}
             </span>
           </div>
 
           <div className="mt-4 flex items-start gap-4">
-            <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-white/20 backdrop-blur-md ring-1 ring-white/30">
-              <IconComponent className="size-6 text-white" />
+            <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md shadow-inner ring-1 ring-white/50">
+              <IconComponent className="size-7 text-white drop-shadow-md" />
             </div>
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-white/90">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-yellow-300 drop-shadow-sm">
                 {activeSlide.category}
               </span>
-              <h3 className="text-xl font-bold leading-snug tracking-tight text-white mt-0.5">
+              <h3 className="text-xl font-extrabold leading-tight tracking-tight text-white mt-1 drop-shadow-sm">
                 {activeSlide.name}
               </h3>
             </div>
           </div>
         </div>
 
-        {/* Slide Content Details */}
-        <div className="p-6 space-y-4 bg-surface">
+        {/* AD CONTENT */}
+        <div className="p-5 space-y-4 bg-slate-50 dark:bg-slate-900/50">
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-content-tertiary">
-              Key Benefit
-            </h4>
-            <p className="mt-1 text-sm font-medium text-content leading-relaxed">
+            <p className="text-sm font-bold text-slate-800 dark:text-slate-200 leading-snug">
               {activeSlide.benefit}
             </p>
           </div>
 
-          <div className="rounded-lg bg-surface-sunken p-3.5 border border-hairline/60">
-            <h4 className="text-xs font-semibold uppercase tracking-wide text-accent">
-              Highlight
-            </h4>
-            <p className="mt-0.5 text-xs text-content-secondary leading-normal">
+          <div className="rounded-xl bg-green-50 dark:bg-green-950/30 p-3 border border-green-200 dark:border-green-900/50 shadow-sm">
+            <p className="text-xs font-bold text-green-800 dark:text-green-300 leading-normal flex items-start gap-2">
+              <span className="text-green-600 dark:text-green-400 mt-0.5">✓</span>
               {activeSlide.highlight}
             </p>
           </div>
 
-          {/* Action Footer */}
-          <div className="flex items-center justify-between pt-2 border-t border-hairline/60">
+          {/* AD CTA */}
+          <div className="pt-2">
             <Link
-              href="/schemes"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-accent hover:underline"
+              href={activeSlide.link}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-accent px-4 py-3 text-sm font-bold text-white shadow-md transition-all hover:bg-accent-hover hover:shadow-lg active:scale-[0.98]"
             >
-              Explore all Govt Schemes
-              <ExternalLink className="size-3.5" />
+              Check Eligibility Now
+              <ExternalLink className="size-4" />
             </Link>
-
-            {/* Navigation Buttons */}
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={handlePrev}
-                aria-label="Previous scheme slide"
-                className="flex size-8 items-center justify-center rounded-full border border-hairline bg-surface hover:bg-surface-raised text-content transition-colors"
-              >
-                <ChevronLeft className="size-4" />
-              </button>
-              <button
-                type="button"
-                onClick={handleNext}
-                aria-label="Next scheme slide"
-                className="flex size-8 items-center justify-center rounded-full border border-hairline bg-surface hover:bg-surface-raised text-content transition-colors"
-              >
-                <ChevronRight className="size-4" />
-              </button>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Pagination Dot Indicators */}
-      <div className="mt-4 flex items-center justify-center gap-2">
+      {/* Navigation Indicators */}
+      <div className="mt-3 flex items-center justify-center gap-2">
         {SCHEME_SLIDES.map((slide, idx) => (
           <button
             key={slide.id}
             type="button"
             onClick={() => setCurrentIndex(idx)}
-            aria-label={`Go to scheme slide ${idx + 1}`}
-            className={`h-2 rounded-full transition-all duration-300 ${
+            className={`h-1.5 rounded-full transition-all duration-300 ${
               idx === currentIndex
-                ? "w-7 bg-accent"
-                : "w-2 bg-content-tertiary/40 hover:bg-content-tertiary"
+                ? "w-8 bg-accent"
+                : "w-2 bg-slate-300 dark:bg-slate-700 hover:bg-slate-400"
             }`}
           />
         ))}

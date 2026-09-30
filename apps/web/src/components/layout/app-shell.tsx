@@ -33,7 +33,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { language, setLanguage } = useLanguage();
 
   return (
-    <div className="min-h-dvh">
+    <div className="min-h-dvh flex flex-col">
       <Splash />
 
       {/* Masthead in crop green, so the app reads as agricultural at a glance
@@ -77,43 +77,48 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main id="main" className="w-full px-4 md:px-8 pb-32 pt-6 min-h-dvh bg-gradient-to-br from-surface to-surface-sunken transition-colors duration-500">
-        <div className="max-w-screen-2xl mx-auto w-full">
+      <main id="main" className={cn(
+        "w-full px-4 md:px-8 transition-colors duration-500 flex-1 flex flex-col",
+        pathname === "/onboarding" ? "py-4 bg-slate-50 dark:bg-[#0e160f]" : "pb-32 pt-6 min-h-dvh bg-gradient-to-br from-surface to-surface-sunken"
+      )}>
+        <div className="max-w-screen-2xl mx-auto w-full h-full flex-1 flex flex-col">
           {children}
         </div>
       </main>
 
-      <nav
-        aria-label="Primary"
-        className="material-chrome fixed inset-x-0 bottom-0 z-40 border-t border-white/10 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_24px_rgba(0,0,0,0.05)]"
-      >
-        <ul className="mx-auto flex max-w-screen-2xl items-stretch justify-around px-4 md:px-8">
-          {TABS.map(({ href, label, Icon }) => {
-            const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
-            return (
-              <li key={href} className="flex-1">
-                <Link
-                  href={href}
-                  aria-current={active ? "page" : undefined}
-                  className={cn(
-                    "flex min-h-tap flex-col items-center justify-center gap-1 rounded-md py-2",
-                    "transition-colors duration-150",
-                    active ? "text-accent" : "text-content-tertiary hover:text-content-secondary",
-                  )}
-                >
-                  <Icon
-                    aria-hidden
-                    className="size-6"
-                    // Weight matches the label beside it; the active tab reads heavier.
-                    strokeWidth={active ? 2.25 : 1.75}
-                  />
-                  <span className="type-caption font-medium">{label}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
+      {pathname !== "/onboarding" && (
+        <nav
+          aria-label="Primary"
+          className="material-chrome fixed inset-x-0 bottom-0 z-40 border-t border-white/10 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_24px_rgba(0,0,0,0.05)]"
+        >
+          <ul className="mx-auto flex max-w-screen-2xl items-stretch justify-around px-4 md:px-8">
+            {TABS.map(({ href, label, Icon }) => {
+              const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
+              return (
+                <li key={href} className="flex-1">
+                  <Link
+                    href={href}
+                    aria-current={active ? "page" : undefined}
+                    className={cn(
+                      "flex min-h-tap flex-col items-center justify-center gap-1 rounded-md py-2",
+                      "transition-colors duration-150",
+                      active ? "text-accent" : "text-content-tertiary hover:text-content-secondary",
+                    )}
+                  >
+                    <Icon
+                      aria-hidden
+                      className="size-6"
+                      // Weight matches the label beside it; the active tab reads heavier.
+                      strokeWidth={active ? 2.25 : 1.75}
+                    />
+                    <span className="type-caption font-medium">{label}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+      )}
     </div>
   );
 }
