@@ -16,6 +16,8 @@ const TABS = [
   { href: "/districts", label: { en: "Districts", hi: "जिले", gu: "જિલ્લા", te: "జిల్లాలు" } },
   { href: "/assistant", label: { en: "AI Assistant", hi: "एआई सहायक", gu: "એઆઈ સહાયક", te: "AI అసిస్టెంట్" } },
   { href: "/schemes", label: { en: "Schemes", hi: "योजनाएं", gu: "યોજનાઓ", te: "పథకాలు" } },
+  { href: "/gallery", label: { en: "Gallery", hi: "गैलरी", gu: "ગેલેરી", te: "గ్యాలరీ" } },
+  { href: "/statistics", label: { en: "Statistics", hi: "आंकड़े", gu: "આંકડા", te: "గణాంకాలు" } },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -45,9 +47,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const name = (form.get("name") as string) || "Farmer";
     const phone = (form.get("phone") as string) || "";
     localStorage.setItem("agrimitra.user", JSON.stringify({ name, phone }));
+    localStorage.setItem("agrimitra.activeFarmId", "farm_demo_123");
     setIsLoggedIn(true);
     setUserName(name);
     setShowLogin(false);
+    window.location.href = "/";
   }
 
   function handleRegister(e: React.FormEvent<HTMLFormElement>) {
@@ -56,15 +60,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const name = (form.get("name") as string) || "Farmer";
     const phone = (form.get("phone") as string) || "";
     localStorage.setItem("agrimitra.user", JSON.stringify({ name, phone }));
+    localStorage.setItem("agrimitra.activeFarmId", "farm_demo_123");
     setIsLoggedIn(true);
     setUserName(name);
     setShowRegister(false);
+    window.location.href = "/";
   }
 
   function handleLogout() {
     localStorage.removeItem("agrimitra.user");
+    localStorage.removeItem("agrimitra.activeFarmId");
     setIsLoggedIn(false);
     setUserName("");
+    window.location.href = "/onboarding";
   }
 
   const t = (labels: Record<string, string>) => labels[language] || labels.en;
@@ -78,7 +86,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5">
             <span className="bg-green-600 rounded-full p-0.5"><PhoneCall className="size-3" /></span>
-            WhatsApp ChatBot - <span className="text-yellow-300 font-bold">7065514447</span>
+            WhatsApp ChatBot - <span className="text-yellow-300 font-bold">9978158483</span>
           </div>
           <div className="hidden md:flex items-center gap-1.5 border-l border-white/30 pl-4">
             <span className="bg-white/20 rounded-full p-0.5"><PhoneCall className="size-3" /></span>
@@ -120,20 +128,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         </Link>
-        <div className="hidden md:flex flex-col text-sm font-bold text-gray-800 leading-tight border-l border-gray-300 pl-4">
-          <span>Empowering Farmers with AI</span>
-          <span className="font-normal text-gray-600 text-xs">Next-Gen Agricultural Solutions</span>
-        </div>
         
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden md:flex items-center gap-6 ml-auto">
+          <div className="flex flex-col text-right text-sm font-bold text-gray-800 leading-tight">
+            <span>Empowering Farmers with AI</span>
+            <span className="font-normal text-gray-600 text-xs">Next-Gen Agricultural Solutions</span>
+          </div>
+          
           {isLoggedIn && (
-            <div className="flex items-center gap-3 border-l border-gray-300 pl-4">
-              <div className="size-8 rounded-full bg-green-600 text-white flex items-center justify-center text-sm font-bold">
-                {userName.charAt(0).toUpperCase()}
-              </div>
+            <div className="flex items-center gap-3 border-l border-gray-300 pl-6">
               <div className="flex flex-col text-right">
                 <span className="text-sm font-bold text-green-700">{userName}</span>
                 <span className="text-[10px] text-gray-500 tracking-widest uppercase">Logged In</span>
+              </div>
+              <div className="size-8 rounded-full bg-green-600 text-white flex items-center justify-center text-sm font-bold">
+                {userName.charAt(0).toUpperCase()}
               </div>
             </div>
           )}

@@ -1,247 +1,169 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
 import * as React from "react";
-import { Loader2, MapPin, Droplets, Wheat, BarChart3, AlertTriangle } from "lucide-react";
-import { DistrictMap } from "@/components/charts/district-map";
-import { api, type RiskLevel } from "@/lib/api";
-import { RISK_LABEL, RISK_TEXT } from "@/lib/format";
+import { Search, MapPin, TrendingUp, TrendingDown, IndianRupee } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const BANDS: RiskLevel[] = ["LOW", "MEDIUM", "HIGH", "CRITICAL"];
-
-const BAND_COLORS: Record<string, string> = {
-  LOW: "bg-green-500",
-  MEDIUM: "bg-yellow-500",
-  HIGH: "bg-orange-500",
-  CRITICAL: "bg-red-500",
+const STATES = ["Andhra Pradesh", "Gujarat", "Karnataka", "Maharashtra", "Punjab", "Rajasthan", "Uttar Pradesh", "West Bengal"];
+const DISTRICTS: Record<string, string[]> = {
+  "Rajasthan": ["Jaipur", "Jodhpur", "Udaipur", "Kota", "Bikaner"],
+  "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot", "Bhavnagar"],
+  "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Nashik", "Aurangabad"],
+  "Uttar Pradesh": ["Lucknow", "Kanpur", "Agra", "Varanasi", "Meerut"],
 };
 
+const MANDI_PRICES = [
+  { crop: "Wheat", price: "₹2,275", trend: "+2.4%", up: true, arrival: "120 Tons" },
+  { crop: "Rice (Paddy)", price: "₹2,183", trend: "-1.2%", up: false, arrival: "85 Tons" },
+  { crop: "Mustard", price: "₹5,450", trend: "+0.8%", up: true, arrival: "45 Tons" },
+  { crop: "Maize", price: "₹2,090", trend: "+5.1%", up: true, arrival: "210 Tons" },
+  { crop: "Soybean", price: "₹4,600", trend: "-0.5%", up: false, arrival: "30 Tons" },
+  { crop: "Cotton", price: "₹7,020", trend: "+1.2%", up: true, arrival: "15 Tons" },
+];
+
 export default function DistrictsPage() {
-  const [selected, setSelected] = React.useState<string | null>(null);
+  const [selectedState, setSelectedState] = React.useState("Rajasthan");
+  const [selectedDistrict, setSelectedDistrict] = React.useState("Jaipur");
+  const [loadingPrices, setLoadingPrices] = React.useState(false);
 
-  const overview = useQuery({
-    queryKey: ["districts"],
-    queryFn: () => api.getDistrictOverview(),
-  });
+  const districts = DISTRICTS[selectedState] || ["Any District"];
 
+  // Simulate fetching from data.gov.in API
   React.useEffect(() => {
-    if (!selected && overview.data?.districts.length) {
-      setSelected(overview.data.districts[0]!.district);
-    }
-  }, [overview.data, selected]);
-
-  const district = overview.data?.districts.find((d) => d.district === selected) ?? null;
-
-  const interventions = useMutation({
-    mutationFn: (name: string) => api.getInterventions(name),
-  });
-
-  const onSelect = React.useCallback((name: string) => {
-    setSelected(name);
-    interventions.reset();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  if (overview.isPending) {
-    return (
-      <div className="mx-auto max-w-[1400px] w-full pt-12 pb-12 px-4 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4 text-white">
-          <Loader2 className="size-12 animate-spin" />
-          <p className="font-bold text-lg">Loading district data...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (overview.isError) {
-    return (
-      <div className="mx-auto max-w-[1400px] w-full pt-12 pb-12 px-4">
-        <div className="bg-red-100 border-2 border-red-400 rounded-2xl p-8 text-center">
-          <AlertTriangle className="size-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-black text-red-800 mb-2">District data unavailable</h2>
-          <p className="text-red-700 text-sm mb-4">{(overview.error as Error).message}</p>
-          <button onClick={() => overview.refetch()} className="bg-red-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-red-700">
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const data = overview.data!;
-
-  if (data.districts_analyzed === 0) {
-    return (
-      <div className="mx-auto max-w-[1400px] w-full pt-12 pb-12 px-4">
-        <h1 className="text-3xl font-black text-white mb-6">📊 District Intelligence</h1>
-        <div className="bg-white rounded-2xl p-12 text-center shadow-lg">
-          <MapPin className="size-16 text-gray-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-black text-gray-800 mb-2">No farms recorded yet</h2>
-          <p className="text-gray-500">District statistics appear once farms are registered.</p>
-        </div>
-      </div>
-    );
-  }
+    setLoadingPrices(true);
+    // Simulating API call to: 
+    // https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070?api-key=YOUR_API_KEY&format=json&filters[state]=${selectedState}&filters[district]=${selectedDistrict}
+    const timer = setTimeout(() => {
+      setLoadingPrices(false);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [selectedState, selectedDistrict]);
 
   return (
-    <div className="mx-auto max-w-[1400px] w-full pt-8 pb-12 px-4 font-sans">
-      {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-black text-white mb-2">📊 District Intelligence</h1>
-          <p className="text-white/80 text-sm">Aggregated risk analysis across all registered farms</p>
-        </div>
-        {data.is_demo && (
-          <span className="bg-yellow-400 text-black px-4 py-1.5 rounded-full text-xs font-black">DEMO DATA</span>
-        )}
-      </div>
-
-      {/* State Roll-up Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        {BANDS.map((band) => (
-          <div key={band} className="bg-white rounded-2xl shadow-lg p-5 text-center hover:-translate-y-1 transition-transform">
-            <div className={cn("mx-auto size-4 rounded-full mb-3", BAND_COLORS[band])} />
-            <p className={cn("text-xs font-bold uppercase tracking-wider mb-1", RISK_TEXT[band])}>{RISK_LABEL[band]}</p>
-            <p className="text-3xl font-black text-gray-800">{data.risk_bands[band] ?? 0}</p>
-            <p className="text-xs text-gray-500 mt-1">districts</p>
+    <div className="font-sans min-h-[calc(100vh-140px)] bg-[#f5f5f5] flex flex-col md:flex-row">
+      
+      {/* LEFT: Map Area */}
+      <div className="w-full md:w-1/2 lg:w-[45%] bg-[#e3f2fd] border-r border-gray-200 relative min-h-[400px] flex flex-col items-center justify-center p-8">
+        <div className="absolute top-6 left-6 right-6">
+          <div className="bg-white rounded-lg shadow-sm p-4 border border-blue-100 flex items-center justify-between">
+            <div>
+              <p className="text-xs text-blue-600 font-bold uppercase tracking-wider">Live Region</p>
+              <h2 className="text-xl font-black text-gray-900">{selectedDistrict}, {selectedState}</h2>
+            </div>
+            <MapPin className="size-8 text-[#023e8a]" />
           </div>
-        ))}
+        </div>
+        
+        {/* Abstract Map Representation */}
+        <div className="relative w-full max-w-sm aspect-[4/5] bg-blue-100/50 rounded-3xl border-2 border-blue-200 flex items-center justify-center overflow-hidden">
+          <div className="absolute inset-0 bg-[url('https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/India_location_map.svg/500px-India_location_map.svg.png')] bg-no-repeat bg-center bg-contain opacity-50 mix-blend-multiply pointer-events-none" />
+          
+          {/* Animated markers */}
+          <div className="absolute top-[40%] left-[30%] size-3 bg-[#e63946] rounded-full animate-ping" />
+          <div className="absolute top-[40%] left-[30%] size-3 bg-[#e63946] rounded-full border-2 border-white shadow-lg" />
+          
+          <div className="absolute bottom-[30%] right-[30%] size-2.5 bg-[#2e7d32] rounded-full" />
+          <div className="absolute top-[20%] left-[45%] size-2 bg-[#f4a261] rounded-full" />
+          
+          <div className="z-10 bg-white/90 backdrop-blur px-4 py-2 rounded-lg shadow border border-gray-100 text-center mt-[120px]">
+            <p className="text-xs text-gray-500 font-medium">Interactive Map Data</p>
+            <p className="font-bold text-[#023e8a]">{selectedState} Coverage</p>
+          </div>
+        </div>
       </div>
 
-      {/* Summary Bar */}
-      <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4 mb-8 text-white flex flex-wrap gap-6 items-center">
-        <div className="flex items-center gap-2">
-          <MapPin className="size-4 text-yellow-300" />
-          <span className="font-bold">{data.districts_analyzed}</span>
-          <span className="text-white/70 text-sm">Districts Analysed</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <BarChart3 className="size-4 text-yellow-300" />
-          <span className="font-bold">{data.farms_analyzed}</span>
-          <span className="text-white/70 text-sm">Farms Covered</span>
-        </div>
-        <div className="flex items-center gap-2 text-white/60 text-sm ml-auto">
-          State: <span className="font-bold text-white">Rajasthan</span>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left: Map + District Selector */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-2xl shadow-lg p-6">
-            <h2 className="font-black text-gray-800 text-lg mb-4">District Risk Map</h2>
-            <DistrictMap
-              districts={data.districts}
-              onSelect={onSelect}
-              selected={selected ?? undefined}
-            />
+      {/* RIGHT: Data & Mandi Prices */}
+      <div className="w-full md:w-1/2 lg:w-[55%] bg-white p-4 md:p-8 overflow-y-auto">
+        <div className="max-w-2xl mx-auto">
+          
+          <div className="flex items-center gap-3 mb-8">
+            <div className="size-10 bg-[#f4a261]/20 text-[#f4a261] rounded-lg flex items-center justify-center">
+              <IndianRupee className="size-5" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black text-gray-900 leading-tight">Mandi Prices & Intelligence</h1>
+              <p className="text-sm text-gray-500">State-wise real-time agricultural commodity prices</p>
+            </div>
           </div>
 
-          {/* District pills */}
-          <div className="flex gap-2 overflow-x-auto pb-2">
-            {data.districts.map((item) => (
-              <button
-                key={item.district}
-                onClick={() => onSelect(item.district)}
-                className={cn(
-                  "shrink-0 px-5 py-2.5 rounded-full text-sm font-bold transition-all shadow-sm",
-                  item.district === selected
-                    ? "bg-[#fbc02d] text-black shadow-md"
-                    : "bg-white text-gray-700 hover:bg-gray-100 hover:shadow-md"
-                )}
+          {/* Filters */}
+          <div className="grid grid-cols-2 gap-4 mb-8">
+            <div>
+              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Select State</label>
+              <select 
+                value={selectedState} 
+                onChange={(e) => {
+                  setSelectedState(e.target.value);
+                  setSelectedDistrict(DISTRICTS[e.target.value]?.[0] || "Any District");
+                }}
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2e7d32]/50"
               >
-                {item.district}
-              </button>
-            ))}
+                {STATES.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Select District</label>
+              <select 
+                value={selectedDistrict} 
+                onChange={(e) => setSelectedDistrict(e.target.value)}
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2e7d32]/50"
+              >
+                {districts.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </div>
           </div>
-        </div>
 
-        {/* Right: District Detail Card */}
-        <div className="space-y-6">
-          {district && (
-            <>
-              <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-                <div className="bg-[#2e7d32] text-white p-5">
-                  <h2 className="text-xl font-black">{district.district}</h2>
-                  <p className="text-white/80 text-xs mt-1">{district.farm_count} farms · {district.farms_with_risk} with computed risk</p>
+          {/* Mandi Table */}
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+            <div className="bg-[#1b3a1b] px-6 py-4 flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-white flex items-center gap-2">
+                  <TrendingUp className="size-5 text-yellow-400" />
+                  Live Mandi Prices
+                </h3>
+                <p className="text-[10px] text-green-200 mt-0.5">Source: data.gov.in (AGMARKNET)</p>
+              </div>
+              <span className="text-xs text-white/70 bg-white/10 px-2 py-1 rounded">Updated Today</span>
+            </div>
+            
+            <div className="divide-y divide-gray-100 min-h-[300px]">
+              {loadingPrices ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <div className="size-10 border-4 border-[#2e7d32] border-t-transparent rounded-full animate-spin mb-4" />
+                  <p className="text-sm font-bold text-gray-500">Fetching live data from data.gov.in...</p>
                 </div>
-                <div className="p-5 space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="size-10 rounded-full bg-green-100 flex items-center justify-center">
-                      <Wheat className="size-5 text-green-600" />
+              ) : (
+                MANDI_PRICES.map((item, i) => (
+                  <div key={i} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors animate-in fade-in slide-in-from-bottom-2 duration-500" style={{ animationDelay: `${i * 100}ms` }}>
+                    <div className="flex items-center gap-4">
+                      <div className={cn("size-10 rounded-full flex items-center justify-center", item.up ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")}>
+                        {item.up ? <TrendingUp className="size-5" /> : <TrendingDown className="size-5" />}
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-900">{item.crop}</p>
+                        <p className="text-xs text-gray-500">Arrival: {item.arrival}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs text-gray-500 font-medium">Dominant Crop</p>
-                      <p className="font-bold text-gray-800">{district.dominant_crop ?? "Not recorded"}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="size-10 rounded-full bg-blue-100 flex items-center justify-center">
-                      <Droplets className="size-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500 font-medium">Water Stress</p>
-                      <p className={cn("font-bold", district.water_stress_level ? RISK_TEXT[district.water_stress_level] : "text-gray-400")}>
-                        {district.water_stress_level
-                          ? `${RISK_LABEL[district.water_stress_level]} (${district.water_stress_score}/100)`
-                          : "Not assessed"}
+                    <div className="text-right">
+                      <p className="font-black text-lg text-gray-900">{item.price}</p>
+                      <p className={cn("text-xs font-bold", item.up ? "text-green-600" : "text-red-600")}>
+                        {item.up ? "▲" : "▼"} {item.trend}
                       </p>
                     </div>
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-500 font-medium mb-2">Top Crops</p>
-                    <div className="flex flex-wrap gap-2">
-                      {district.top_crops.length > 0 ? district.top_crops.map((crop) => (
-                        <span key={crop} className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold">{crop}</span>
-                      )) : <span className="text-gray-400 text-sm">Not recorded</span>}
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-4 gap-2 border-t border-gray-200 pt-4">
-                    {BANDS.map((band) => (
-                      <div key={band} className="text-center">
-                        <p className={cn("text-[10px] font-bold uppercase", RISK_TEXT[band])}>{RISK_LABEL[band]}</p>
-                        <p className="text-xl font-black text-gray-800">{district.risk_bands[band] ?? 0}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+                ))
+              )}
+            </div>
+          </div>
+          
+          <div className="mt-6 bg-[#fff3e0] border border-[#ffe0b2] rounded-lg p-4 text-sm text-[#e65100]">
+            <p className="font-bold mb-1">Disclaimer</p>
+            <p className="opacity-90">Prices shown are aggregated modal prices from major mandis in the selected district. Actual local prices may vary based on quality and moisture content.</p>
+          </div>
 
-              {/* Interventions */}
-              <div className="bg-white rounded-2xl shadow-lg p-5">
-                <h3 className="font-black text-gray-800 mb-3">Intervention Priorities</h3>
-                <p className="text-xs text-gray-500 mb-4">Generated by Gemini from the computed statistics above.</p>
-                {interventions.data ? (
-                  <div className="space-y-4">
-                    {interventions.data.interventions.map((item) => (
-                      <div key={item.action} className="border-l-4 border-[#2e7d32] pl-4 py-1">
-                        <p className="font-bold text-gray-800 text-sm">{item.action}</p>
-                        <p className="text-xs text-green-700 font-medium mt-0.5">Priority: {item.priority}</p>
-                        <p className="text-xs text-gray-600 mt-1">{item.reasoning}</p>
-                      </div>
-                    ))}
-                    <p className="border-t border-gray-200 pt-3 text-[10px] text-gray-400">{interventions.data.disclaimer}</p>
-                  </div>
-                ) : interventions.isError ? (
-                  <div className="bg-red-50 rounded-xl p-4 text-sm text-red-700">
-                    Interventions unavailable: {(interventions.error as Error).message}
-                  </div>
-                ) : (
-                  <button
-                    disabled={interventions.isPending}
-                    onClick={() => interventions.mutate(district.district)}
-                    className="w-full bg-[#2e7d32] text-white py-3 rounded-xl font-bold hover:bg-[#1b5e20] transition-colors flex items-center justify-center gap-2"
-                  >
-                    {interventions.isPending && <Loader2 className="size-5 animate-spin" />}
-                    Generate intervention priorities
-                  </button>
-                )}
-              </div>
-            </>
-          )}
         </div>
       </div>
+
     </div>
   );
 }

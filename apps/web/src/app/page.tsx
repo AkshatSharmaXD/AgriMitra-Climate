@@ -86,33 +86,35 @@ export default function FarmDashboardPage() {
   const f = farm.data!;
 
   return (
-    <div 
-      className="mx-auto max-w-[1400px] w-full pt-8 pb-12 px-4 font-sans space-y-8"
-      variants={containerVariants}
-      initial="hidden"
-      animate="show"
-    >
-      {/* Farm Header */}
-      <div variants={itemVariants} className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-3xl font-black text-white">🌾 {f.crop} · {f.area_acres} acres</h1>
-            {f.is_demo && <span className="bg-yellow-400 text-black px-3 py-1 rounded-full text-[10px] font-black">DEMO</span>}
+    <div className="font-sans min-h-screen bg-[#f5f5f5]">
+      {/* PMFBY-style green header for the page */}
+      <div className="bg-[#1b3a1b] py-6 px-4 md:px-8 border-b-4 border-yellow-400">
+        <div className="mx-auto max-w-[1400px] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+              <h1 className="text-2xl md:text-3xl font-black text-white flex items-center gap-2">
+                <Sprout className="size-6 text-yellow-300" />
+                {f.crop} · {f.area_acres} acres
+              </h1>
+              {f.is_demo && <span className="bg-yellow-400 text-black px-3 py-1 rounded-full text-[10px] font-black">DEMO</span>}
+            </div>
+            <p className="flex items-center gap-2 text-white/80 text-sm font-medium">
+              <MapPin className="size-4 text-yellow-300" />
+              {f.district}, {f.state} <span className="opacity-50">•</span> {f.soil.type} soil <span className="opacity-50">•</span> {f.irrigation}
+            </p>
           </div>
-          <p className="flex items-center gap-2 text-white/80 text-sm font-medium">
-            <MapPin className="size-4 text-yellow-300" />
-            {f.district}, {f.state} <span className="opacity-50">•</span> {f.soil.type} soil <span className="opacity-50">•</span> {f.irrigation}
-          </p>
         </div>
       </div>
 
+      <div className="mx-auto max-w-[1400px] w-full pt-8 pb-12 px-4 space-y-8">
+
       {/* Quick Action Cards */}
-      <div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { href: `/advisory?farm=${farmId}`, label: "AI Advisory", icon: Sprout, color: "bg-[#2e7d32]" },
-          { href: `/crops?farm=${farmId}`, label: "Crop Suitability", icon: Droplets, color: "bg-[#00b4d8]" },
-          { href: "/scan", label: "Crop Scanner", icon: Bug, color: "bg-[#9d4edd]" },
-          { href: "/assistant", label: "AI Chat", icon: Bot, color: "bg-[#ff4d6d]" },
+          { href: "/scan", label: "AI Crop Scanner", icon: Bug, color: "bg-[#9d4edd]" },
+          { href: "/assistant", label: "AI Chatbot", icon: Bot, color: "bg-[#ff4d6d]" },
+          { href: "/weather", label: "Live Weather", icon: CloudSun, color: "bg-[#023e8a]" },
+          { href: "/districts", label: "District Data", icon: Map, color: "bg-[#f4a261]" },
         ].map((action) => (
           <Link key={action.href} href={action.href} className="bg-white rounded-2xl shadow-lg p-5 flex flex-col items-center text-center hover:-translate-y-1 transition-all group">
             <div className={cn("size-12 rounded-full text-white flex items-center justify-center mb-3 group-hover:scale-110 transition-transform", action.color)}>
@@ -276,8 +278,9 @@ export default function FarmDashboardPage() {
       </div>
 
       {/* Agriculture News */}
-      <div variants={itemVariants}>
+      <div>
         <AgriNews />
+      </div>
       </div>
     </div>
   );

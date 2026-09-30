@@ -11,25 +11,24 @@ import { cn } from "@/lib/utils";
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED = ["image/jpeg", "image/png", "image/webp"];
 
-// Demo diseased leaf images from real agricultural sources
 const DEMO_LEAVES = [
   {
-    src: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Late_blight_on_potato_leaf.JPG/640px-Late_blight_on_potato_leaf.JPG",
+    src: "/leaf1.png",
     label: "Late Blight - Potato",
     severity: "High"
   },
   {
-    src: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Tomato_leaf_with_bacterial_speck.jpg/640px-Tomato_leaf_with_bacterial_speck.jpg",
+    src: "/leaf2.png",
     label: "Bacterial Speck - Tomato",
     severity: "Medium"
   },
   {
-    src: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Rice_Blast_Symptoms_on_Leaves.JPG/640px-Rice_Blast_Symptoms_on_Leaves.JPG",
+    src: "/leaf3.png",
     label: "Rice Blast",
     severity: "Critical"
   },
   {
-    src: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Septoria_leaf_spot_on_wheat.jpg/640px-Septoria_leaf_spot_on_wheat.jpg",
+    src: "/leaf4.png",
     label: "Septoria Leaf Spot - Wheat",
     severity: "Medium"
   }
@@ -93,191 +92,181 @@ export default function ScanPage() {
       return;
     }
     if (file.size > MAX_BYTES) {
-      setGuardError(
-        `That photo is ${(file.size / 1024 / 1024).toFixed(1)}MB. The limit is 5MB.`,
-      );
+      setGuardError(`That photo is ${(file.size / 1024 / 1024).toFixed(1)}MB. The limit is 5MB.`);
       return;
     }
 
+    if (preview) URL.revokeObjectURL(preview);
     setPreview(URL.createObjectURL(file));
     diagnose.mutate(file);
   }
 
-  function reset() {
-    setPreview(null);
-    setGuardError(null);
-    diagnose.reset();
-  }
-
-  const result = diagnose.data;
-  const notPlant = result?.label === "not_a_plant";
-
   return (
-    <div className="mx-auto max-w-[1400px] w-full pt-8 pb-12 px-4 font-sans">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-black text-white mb-2">🔬 AI Crop Disease Scanner</h1>
-        <p className="text-white/80 text-sm max-w-2xl">Photograph an affected leaf. The AI will identify the possible disease and provide guidance. This is a possible identification, not a clinical diagnosis.</p>
+    <div className="font-sans min-h-screen bg-[#f5f5f5]">
+      {/* PMFBY-style green header for the page */}
+      <div className="bg-[#1b3a1b] py-6 px-4 md:px-8 border-b-4 border-yellow-400">
+        <div className="mx-auto max-w-[1400px]">
+          <h1 className="text-2xl md:text-3xl font-black text-white">AI Crop Disease Scanner</h1>
+          <p className="text-white/80 mt-1 text-sm">Upload a photo to instantly diagnose crop diseases and get remedies.</p>
+        </div>
       </div>
 
-      {supportedCrops.length > 0 && (
-        <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4 mb-6 text-white/90 text-xs">
-          <strong>Supported Crops:</strong> {supportedCrops.map((crop) => (crop === "Corn" ? "Maize (Corn)" : crop)).join(", ")}
-        </div>
-      )}
-
-      {farmCrop != null && farmCropSupported === false && (
-        <div className="bg-yellow-100 border-2 border-yellow-400 rounded-xl p-4 mb-6 flex items-start gap-3">
-          <AlertTriangle className="size-5 text-yellow-600 shrink-0 mt-0.5" />
-          <p className="text-sm text-yellow-800 font-medium">
-            Your crop ({farmCrop}) is not one this scanner was trained on. The result will likely be uncertain.
-          </p>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Left: Upload Zone */}
-        <div>
-          {!preview ? (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <label className="flex flex-col items-center justify-center gap-3 min-h-[200px] cursor-pointer rounded-2xl bg-white shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 p-6 text-center group">
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    capture="environment"
-                    className="sr-only"
-                    onChange={handleFile}
-                  />
-                  <div className="size-16 rounded-full bg-[#00b4d8] text-white flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Camera className="size-8" />
+      <div className="mx-auto max-w-[1400px] px-4 md:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          
+          {/* Left Column: Upload / Preview */}
+          <div className="space-y-6">
+            {!preview ? (
+              <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+                <div className="bg-[#2e7d32] text-white p-4">
+                  <h2 className="font-bold text-lg flex items-center gap-2">
+                    <Camera className="size-5" /> Submit Crop Photo
+                  </h2>
+                </div>
+                <div className="p-8">
+                  <div className="grid grid-cols-2 gap-4">
+                    <label className="flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-[#2e7d32]/30 rounded-xl hover:bg-green-50 transition-colors cursor-pointer group">
+                      <input type="file" accept="image/jpeg,image/png,image/webp" capture="environment" className="sr-only" onChange={handleFile} />
+                      <div className="size-16 rounded-full bg-[#2e7d32]/10 text-[#2e7d32] flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Camera className="size-8" />
+                      </div>
+                      <span className="font-bold text-gray-800 text-center">Use Camera</span>
+                    </label>
+                    <label className="flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-[#2e7d32]/30 rounded-xl hover:bg-green-50 transition-colors cursor-pointer group">
+                      <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={handleFile} />
+                      <div className="size-16 rounded-full bg-[#2e7d32]/10 text-[#2e7d32] flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <ImageUp className="size-8" />
+                      </div>
+                      <span className="font-bold text-gray-800 text-center">Upload File</span>
+                    </label>
                   </div>
-                  <span className="font-bold text-gray-800 text-lg">Camera</span>
-                  <span className="text-xs text-gray-500">Take a photo of the leaf</span>
-                </label>
-                <label className="flex flex-col items-center justify-center gap-3 min-h-[200px] cursor-pointer rounded-2xl bg-white shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 p-6 text-center group">
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    className="sr-only"
-                    onChange={handleFile}
-                  />
-                  <div className="size-16 rounded-full bg-[#9d4edd] text-white flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <ImageUp className="size-8" />
-                  </div>
-                  <span className="font-bold text-gray-800 text-lg">Gallery</span>
-                  <span className="text-xs text-gray-500">Upload from your device</span>
-                </label>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-              <div className="relative aspect-[4/3] w-full bg-gray-100">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={preview} alt="The leaf you photographed" className="size-full object-cover" />
-                {diagnose.isPending && (
-                  <div className="absolute inset-0 grid place-items-center bg-black/50 backdrop-blur-sm">
-                    <div className="flex flex-col items-center gap-2 text-white">
-                      <Loader2 className="size-10 animate-spin" />
-                      <p className="font-bold text-lg">Analysing…</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {guardError && (
-            <div className="mt-4 bg-red-100 border-2 border-red-400 rounded-xl p-4 flex items-start gap-3">
-              <AlertTriangle className="size-5 text-red-600 shrink-0" />
-              <p className="text-sm text-red-800 font-medium">{guardError}</p>
-            </div>
-          )}
-
-          {diagnose.isError && (
-            <div className="mt-4 bg-red-100 border-2 border-red-400 rounded-xl p-4">
-              <p className="text-sm text-red-800 font-bold mb-2">Analysis failed</p>
-              <p className="text-xs text-red-700">{(diagnose.error as Error).message}</p>
-              <button onClick={reset} className="mt-3 bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-700">
-                Try another photo
-              </button>
-            </div>
-          )}
-
-          {result && (
-            notPlant ? (
-              <div className="mt-4 bg-yellow-50 border-2 border-yellow-400 rounded-2xl p-6">
-                <h3 className="font-black text-lg text-yellow-800 mb-2">No plant found in this photo</h3>
-                <p className="text-sm text-yellow-700 mb-4">Fill the frame with a single leaf, in daylight, against a plain background.</p>
-                <button onClick={reset} className="bg-yellow-500 text-black px-6 py-2.5 rounded-xl font-bold hover:bg-yellow-600 flex items-center gap-2">
-                  <RotateCcw className="size-4" /> Take another photo
-                </button>
+                  <p className="text-center text-xs text-gray-500 mt-6 font-medium">Supported formats: JPG, PNG, WEBP (Max 5MB)</p>
+                </div>
               </div>
             ) : (
-              <div className="mt-4 space-y-4">
-                <div className="bg-white rounded-2xl shadow-lg p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <h3 className="font-black text-xl text-gray-800">Possible: {prettyLabel(result.label)}</h3>
-                    <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold">{result.source}</span>
-                  </div>
-                  {result.confidence != null && (
-                    <div className="mb-4">
-                      <div className="flex items-baseline gap-2 mb-2">
-                        <span className="text-3xl font-black text-gray-800">{Math.round(result.confidence * 100)}%</span>
-                        <span className="text-sm text-gray-500">model confidence</span>
-                      </div>
-                      <div className="h-3 overflow-hidden rounded-full bg-gray-200">
-                        <div className="h-full rounded-full bg-[#2e7d32] transition-all" style={{ width: `${Math.round(result.confidence * 100)}%` }} />
-                      </div>
+              <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+                <div className="bg-[#2e7d32] text-white p-4 flex justify-between items-center">
+                  <h2 className="font-bold text-lg">Photo Analysis</h2>
+                  <button onClick={() => setPreview(null)} className="text-white hover:text-yellow-300 text-sm font-bold flex items-center gap-1">
+                    <RotateCcw className="size-4" /> Retake
+                  </button>
+                </div>
+                <div className="relative aspect-[4/3] bg-gray-100">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={preview} alt="The leaf you photographed" className="size-full object-cover" />
+                  {diagnose.isPending && (
+                    <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white backdrop-blur-sm">
+                      <Loader2 className="size-12 animate-spin mb-4" />
+                      <p className="font-bold text-xl">Analyzing...</p>
+                      <p className="text-sm text-white/80 mt-2">Checking against 38 diseases</p>
                     </div>
                   )}
                 </div>
-
-                <div className="bg-white rounded-2xl shadow-lg p-6">
-                  <h3 className="font-bold text-gray-800 mb-2">Guidance</h3>
-                  <p className="text-sm text-gray-700 leading-relaxed">{result.guidance}</p>
-                </div>
-
-                <div className="bg-gray-100 rounded-2xl p-4">
-                  <p className="text-xs text-gray-500">{result.disclaimer}</p>
-                </div>
-
-                <button onClick={reset} className="w-full bg-[#2e7d32] text-white py-3 rounded-xl font-bold hover:bg-[#1b5e20] flex items-center justify-center gap-2">
-                  <RotateCcw className="size-4" /> Scan another leaf
-                </button>
               </div>
-            )
-          )}
-        </div>
+            )}
 
-        {/* Right: Demo Gallery of Diseased Leaves */}
-        <div>
-          <h2 className="text-xl font-black text-white mb-4">📸 Example Diseased Leaves</h2>
-          <p className="text-white/80 text-xs mb-6">These are real examples of crop diseases detected by our AI scanner. Upload a similar image to get instant analysis.</p>
-          <div className="grid grid-cols-2 gap-4">
-            {DEMO_LEAVES.map((leaf) => (
-              <div key={leaf.label} className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 cursor-pointer group">
-                <div className="aspect-square bg-gray-100 overflow-hidden">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img 
-                    src={leaf.src} 
-                    alt={leaf.label} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                  />
-                </div>
-                <div className="p-3">
-                  <p className="font-bold text-gray-800 text-sm">{leaf.label}</p>
-                  <span className={cn(
-                    "inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold",
-                    leaf.severity === "Critical" && "bg-red-100 text-red-700",
-                    leaf.severity === "High" && "bg-orange-100 text-orange-700",
-                    leaf.severity === "Medium" && "bg-yellow-100 text-yellow-700"
-                  )}>
-                    {leaf.severity} Severity
-                  </span>
+            {guardError && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+                <AlertTriangle className="size-5 text-red-600 mt-0.5 shrink-0" />
+                <p className="text-sm text-red-800 font-bold">{guardError}</p>
+              </div>
+            )}
+            {diagnose.isError && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+                <AlertTriangle className="size-5 text-red-600 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm text-red-800 font-bold">Analysis Failed</p>
+                  <p className="text-xs text-red-600 mt-1">{(diagnose.error as Error).message}</p>
                 </div>
               </div>
-            ))}
+            )}
+          </div>
+
+          {/* Right Column: Results / Status / Demo */}
+          <div className="space-y-6">
+            
+            {/* If Results Present */}
+            {diagnose.data?.disease && (
+              <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+                <div className={cn("p-4 text-white", diagnose.data.disease.confidence > 0.8 ? "bg-[#b91c1c]" : "bg-[#d4a017]")}>
+                  <h2 className="font-black text-xl flex items-center gap-2">
+                    <AlertTriangle className="size-6" /> Detection Result
+                  </h2>
+                </div>
+                <div className="p-6">
+                  <div className="mb-6">
+                    <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Identified Disease</p>
+                    <p className="text-2xl font-black text-gray-900 leading-tight">{prettyLabel(diagnose.data.disease.label)}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="bg-gray-100 px-2 py-1 rounded text-xs font-bold text-gray-700">Confidence: {(diagnose.data.disease.confidence * 100).toFixed(1)}%</span>
+                      {diagnose.data.disease.confidence < 0.6 && <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-bold">Low Confidence</span>}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="border-l-4 border-blue-600 pl-4">
+                      <p className="text-sm font-bold text-gray-900 mb-1">Recommended Action</p>
+                      <p className="text-sm text-gray-600 leading-relaxed">{diagnose.data.advisory.action}</p>
+                    </div>
+                    {diagnose.data.advisory.remedy && (
+                      <div className="border-l-4 border-green-600 pl-4">
+                        <p className="text-sm font-bold text-gray-900 mb-1">Chemical Remedy</p>
+                        <p className="text-sm text-gray-600 leading-relaxed">{diagnose.data.advisory.remedy}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* If healthy / no disease */}
+            {diagnose.data && !diagnose.data.disease && (
+              <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+                <div className="bg-[#2e7d32] p-4 text-white">
+                  <h2 className="font-black text-xl flex items-center gap-2">
+                    <CheckCircle2 className="size-6" /> Healthy Crop
+                  </h2>
+                </div>
+                <div className="p-6 text-center">
+                  <div className="size-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle2 className="size-10 text-[#2e7d32]" />
+                  </div>
+                  <p className="text-lg font-bold text-gray-900 mb-2">No diseases detected</p>
+                  <p className="text-sm text-gray-600">The crop appears to be healthy based on this image. Keep monitoring regularly.</p>
+                </div>
+              </div>
+            )}
+
+            {/* Demo Section (only when no scan) */}
+            {!diagnose.data && (
+              <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+                <h3 className="font-bold text-gray-900 border-b border-gray-200 pb-3 mb-4">Sample Diseased Leaves</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  {DEMO_LEAVES.map((demo) => (
+                    <div key={demo.label} className="group cursor-pointer">
+                      <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 mb-2 border border-gray-200 relative">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={demo.src} alt={demo.label} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                      </div>
+                      <p className="text-xs font-bold text-gray-800 leading-tight group-hover:text-[#2e7d32] transition-colors">{demo.label}</p>
+                      <p className="text-[10px] text-red-600 font-bold">{demo.severity} Risk</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Farm Context Status */}
+            {farmCropSupported === false && !diagnose.data && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                <p className="text-sm text-yellow-800 font-bold mb-1">Crop not fully supported</p>
+                <p className="text-xs text-yellow-700 leading-relaxed">
+                  You are registered as growing <strong>{farmCrop}</strong>, but our AI scanner is currently optimized for other crops. 
+                  You can still upload an image, but accuracy may vary.
+                </p>
+              </div>
+            )}
+            
           </div>
         </div>
       </div>

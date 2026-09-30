@@ -13,59 +13,58 @@ import { useLanguage } from "@/lib/language";
 /* ─── SERVICE CARDS (the 6-card row identical to PMFBY) ─── */
 const SERVICE_CARDS = [
   {
-    id: "assessment",
-    title: { en: "Farm Risk Assessment", hi: "खेत जोखिम मूल्यांकन", gu: "ખેતર જોખમ મૂલ્યાંકન", te: "పొలం రిస్క్ అంచనా" },
-    subtitle: { en: "Know your application status on every step", hi: "हर कदम पर अपनी स्थिति जानें", gu: "દરેક પગલે તમારી સ્થિતિ જાણો", te: "ప్రతి దశలో మీ స్థితి తెలుసుకోండి" },
-    color: "bg-[#00b4d8]",
-    icon: FileText,
-    href: "/farm/new",
-    action: { en: "Check Now", hi: "अभी जांचें", gu: "હવે તપાસો", te: "ఇప్పుడు చెక్ చేయండి" },
-  },
-  {
     id: "scan",
-    title: { en: "AI Disease Scanner (KRPH)", hi: "एआई रोग स्कैनर (KRPH)", gu: "એઆઈ રોગ સ્કેનર (KRPH)", te: "AI వ్యాధి స్కానర్ (KRPH)" },
-    subtitle: { en: "Tell us about your Grievances & Report loss of Crop.", hi: "अपनी शिकायतें बताएं और फसल हानि की रिपोर्ट करें।", gu: "તમારી ફરિયાદો જણાવો અને પાક નુકસાનની જાણ કરો.", te: "మీ ఫిర్యాదులు చెప్పండి & పంట నష్టాన్ని నివేదించండి." },
+    title: { en: "AI Crop Disease Scanner", hi: "एआई रोग स्कैनर", gu: "એઆઈ રોગ સ્કેનર", te: "AI వ్యాధి స్కానర్" },
+    subtitle: { en: "Take a photo of a leaf to identify diseases and get remedies instantly.", hi: "रोगों की पहचान करने और तुरंत उपाय प्राप्त करने के लिए एक पत्ते की फोटो लें।", gu: "રોગો ઓળખવા અને તરત જ ઉપાય મેળવવા માટે પાંદડાનો ફોટો લો.", te: "వ్యాధులను గుర్తించి వెంటనే పరిష్కారాలను పొందడానికి ఆకు ఫోటో తీయండి." },
     color: "bg-[#9d4edd]",
     icon: Bug,
     href: "/scan",
     action: { en: "Explore Now", hi: "अभी खोजें", gu: "હવે શોધો", te: "ఇప్పుడు అన్వేషించండి" },
   },
   {
-    id: "advisory",
-    title: { en: "Learning Management System (LMS)", hi: "शिक्षण प्रबंधन प्रणाली (LMS)", gu: "શિક્ષણ વ્યવસ્થાપન સિસ્ટમ (LMS)", te: "లెర్నింగ్ మేనేజ్‌మెంట్ సిస్టమ్ (LMS)" },
-    subtitle: { en: "Your Gateway to Smarter Farming & Insurance Learning.", hi: "स्मार्ट खेती और बीमा सीखने का प्रवेश द्वार।", gu: "સ્માર્ટ ફાર્મિંગ અને ઇન્શ્યોરન્સ શીખવાનો પ્રવેશદ્વાર.", te: "స్మార్ట్ ఫార్మింగ్ & ఇన్సూరెన్స్ లెర్నింగ్ గేట్‌వే." },
-    color: "bg-[#e63946]",
-    icon: BookOpen,
-    href: "/advisory",
-    action: { en: "Explore Now", hi: "अभी खोजें", gu: "હવે શોધો", te: "ఇప్పుడు అన్వేషించండి" },
-  },
-  {
-    id: "yestech",
-    title: { en: "YESTECH - Live crop observations & photographs", hi: "YESTECH - फसल की तस्वीरें और लाइव अवलोकन", gu: "YESTECH - લાઇવ પાક અવલોકન અને ફોટોગ્રાફ્સ", te: "YESTECH - లైవ్ పంట పరిశీలనలు & ఫోటోలు" },
-    subtitle: { en: "Yield Estimation System based on Technology", hi: "प्रौद्योगिकी आधारित उपज अनुमान प्रणाली", gu: "ટેકનોલોજી આધારિત ઉપજ અંદાજ સિસ્ટમ", te: "టెక్నాలజీ ఆధారిత దిగుబడి అంచనా వ్యవస్థ" },
-    color: "bg-[#ff4d6d]",
-    icon: ScanLine,
-    href: "/scan",
-    action: { en: "Explore Now", hi: "अभी खोजें", gu: "હવે શોધો", te: "ఇప్పుడు అన్వేషించండి" },
-  },
-  {
     id: "weather",
-    title: { en: "Weather Information Network Data System (WINDS)", hi: "मौसम सूचना नेटवर्क डेटा प्रणाली (WINDS)", gu: "હવામાન માહિતી નેટવર્ક ડેટા સિસ્ટમ (WINDS)", te: "వాతావరణ సమాచార నెట్‌వర్క్ డేటా సిస్టమ్ (WINDS)" },
-    subtitle: { en: "Know your Area's Weather Updates", hi: "अपने क्षेत्र के मौसम अपडेट जानें", gu: "તમારા વિસ્તારના હવામાન અપડેટ્સ જાણો", te: "మీ ప్రాంత వాతావరణ అప్‌డేట్‌లు తెలుసుకోండి" },
+    title: { en: "Weather Information Network (WINDS)", hi: "मौसम सूचना नेटवर्क डेटा प्रणाली (WINDS)", gu: "હવામાન માહિતી નેટવર્ક ડેટા સિસ્ટમ (WINDS)", te: "వాతావరణ సమాచార నెట్‌వర్క్ (WINDS)" },
+    subtitle: { en: "Live local forecast, rainfall, and severe weather alerts for your area.", hi: "आपके क्षेत्र के लिए लाइव स्थानीय पूर्वानुमान, वर्षा, और गंभीर मौसम अलर्ट।", gu: "તમારા વિસ્તાર માટે લાઇવ સ્થાનિક આગાહી, વરસાદ અને ગંભીર હવામાન ચેતવણીઓ.", te: "మీ ప్రాంతానికి లైవ్ స్థానిక వాతావరణ అంచనా, వర్షపాతం మరియు తీవ్ర వాతావరణ హెచ్చరికలు." },
     color: "bg-[#023e8a]",
     icon: CloudSun,
     href: "/weather",
     action: { en: "Explore Now", hi: "अभी खोजें", gu: "હવે શોધો", te: "ఇప్పుడు అన్వేషించండి" },
   },
   {
-    id: "realtime",
-    title: { en: "Collection of Real time Observations and Photographs of Crops", hi: "फसलों की वास्तविक समय अवलोकन और तस्वीरें", gu: "પાકના રીયલ ટાઇમ અવલોકન અને ફોટોગ્રાફ્સ", te: "పంటల రియల్ టైమ్ పరిశీలనలు & ఫోటోలు" },
-    subtitle: { en: "Crop Health Monitoring & Crop Loss Assessment", hi: "फसल स्वास्थ्य निगरानी और फसल हानि मूल्यांकन", gu: "પાક સ્વાસ્થ્ય મોનિટરિંગ અને પાક નુકસાન મૂલ્યાંકન", te: "పంట ఆరోగ్య పర్యవేక్షణ & పంట నష్ట అంచనా" },
+    id: "districts",
+    title: { en: "District Intelligence", hi: "जिला खुफिया", gu: "જિલ્લા ઇન્ટેલિજન્સ", te: "జిల్లా ఇంటెలిజెన్స్" },
+    subtitle: { en: "Real-time aggregated risk analysis and observations across all registered farms.", hi: "सभी पंजीकृत खेतों में वास्तविक समय एकत्रित जोखिम विश्लेषण और अवलोकन।", gu: "તમામ નોંધાયેલા ખેતરોમાં રીયલ-ટાઇમ એકીકૃત જોખમ વિશ્લેષણ અને અવલોકનો.", te: "అన్ని రిజిస్టర్డ్ పొలాల్లో రియల్ టైమ్ సమగ్ర రిస్క్ విశ్లేషణ మరియు పరిశీలనలు." },
     color: "bg-[#f4a261]",
-    icon: Leaf,
+    icon: Map,
     href: "/districts",
     action: { en: "Explore Now", hi: "अभी खोजें", gu: "હવે શોધો", te: "ఇప్పుడు అన్వేషించండి" },
-    solid: true,
+  },
+  {
+    id: "schemes",
+    title: { en: "Government Schemes Directory", hi: "सरकारी योजना निर्देशिका", gu: "સરકારી યોજનાઓ ડિરેક્ટરી", te: "ప్రభుత్వ పథకాల డైరెక్టరీ" },
+    subtitle: { en: "Explore exclusive partner programs, subsidies, and crop insurance options.", hi: "विशेष भागीदार कार्यक्रम, सब्सिडी, और फसल बीमा विकल्पों का अन्वेषण करें।", gu: "વિશિષ્ટ ભાગીદાર કાર્યક્રમો, સબસિડી અને પાક વીમા વિકલ્પોનું અન્વેષણ કરો.", te: "ప్రత్యేక భాగస్వామి కార్యక్రమాలు, సబ్సిడీలు మరియు పంట బీమా ఎంపికలను అన్వేషించండి." },
+    color: "bg-[#2e7d32]",
+    icon: BookOpen,
+    href: "/schemes",
+    action: { en: "Explore Now", hi: "अभी खोजें", gu: "હવે શોધો", te: "ఇప్పుడు అన్వేషించండి" },
+  },
+  {
+    id: "assistant",
+    title: { en: "AI Assistant Chatbot", hi: "एआई सहायक चैटबॉट", gu: "એઆઈ સહાયક ચેટબોટ", te: "AI అసిస్టెంట్ చాట్‌బాట్" },
+    subtitle: { en: "Ask questions and get multilingual support for your farming queries 24/7.", hi: "अपने खेती के सवालों के लिए प्रश्न पूछें और 24/7 बहुभाषी सहायता प्राप्त करें।", gu: "તમારા ખેતીના પ્રશ્નો પૂછો અને 24/7 બહુભાષી સપોર્ટ મેળવો.", te: "మీ వ్యవసాయ సందేహాల కోసం ప్రశ్నలు అడగండి మరియు 24/7 బహుభాషా మద్దతు పొందండి." },
+    color: "bg-[#ff4d6d]",
+    icon: Bot,
+    href: "/assistant",
+    action: { en: "Explore Now", hi: "अभी खोजें", gu: "હવે શોધો", te: "ఇప్పుడు అన్వేషించండి" },
+  },
+  {
+    id: "assessment",
+    title: { en: "Farm Risk Assessment", hi: "खेत जोखिम मूल्यांकन", gu: "ખેતર જોખમ મૂલ્યાંકન", te: "పొలం రిస్క్ అంచనా" },
+    subtitle: { en: "Register your farm to receive satellite-based insights and risk scores.", hi: "उपग्रह आधारित अंतर्दृष्टि और जोखिम स्कोर प्राप्त करने के लिए अपना खेत पंजीकृत करें।", gu: "સેટેલાઇટ આધારિત આંતરદૃષ્ટિ અને જોખમ સ્કોર્સ મેળવવા માટે તમારા ખેતરની નોંધણી કરો.", te: "శాటిలైట్ ఆధారిత అంతర్దృష్టులు మరియు రిస్క్ స్కోర్‌లను పొందడానికి మీ పొలాన్ని నమోదు చేసుకోండి." },
+    color: "bg-[#00b4d8]",
+    icon: FileText,
+    href: "/farm/new",
+    action: { en: "Check Now", hi: "अभी जांचें", gu: "હવે તપાસો", te: "ఇప్పుడు చెక్ చేయండి" },
   },
 ];
 
@@ -339,7 +338,7 @@ export default function OnboardingPage() {
               <h4 className="font-bold text-sm mb-4 text-yellow-300 uppercase tracking-wider">Contact & Support</h4>
               <div className="space-y-3 text-sm text-white/70">
                 <p>📞 Krishi Helpline: <span className="text-yellow-300 font-bold">14447</span></p>
-                <p>💬 WhatsApp ChatBot: <span className="text-yellow-300 font-bold">7065514447</span></p>
+                <p>💬 WhatsApp ChatBot: <span className="text-yellow-300 font-bold">9978158483</span></p>
                 <p>📧 support@agrimitra.in</p>
                 <p>🌐 Powered by AI & Satellite Data</p>
               </div>
